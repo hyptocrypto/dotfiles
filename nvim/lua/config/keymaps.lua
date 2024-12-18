@@ -148,6 +148,15 @@ local function conditional_resume_or_command_history()
   end
 end
 
+local function conditional_resume_or_buffers()
+  if has_cached_picker("Buffers") then
+    builtin.resume()
+  else
+    Last_picker_type = "Buffers"
+    builtin.buffers()
+  end
+end
+
 -- Key mappings
 vim.keymap.set(
   "n",
@@ -167,7 +176,12 @@ vim.keymap.set(
   conditional_resume_or_command_history,
   { noremap = true, silent = true, desc = "Resume or Command History" }
 )
-
+vim.keymap.set(
+  "n",
+  "<leader>,",
+  conditional_resume_or_buffers,
+  { noremap = true, silent = true, desc = "Resume or Buffers" }
+)
 -- Create a command to trigger the function
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestd", debug_test, {})
