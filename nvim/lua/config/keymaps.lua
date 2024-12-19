@@ -46,14 +46,37 @@ vim.api.nvim_set_keymap("n", "r", "<C-r>", { noremap = true, silent = true })
 
 -- Golang
 vim.api.nvim_set_keymap("c", "ifer", "GoIfErr<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("c", "bb", "DapToggleBreakpoint", { noremap = true, silent = true })
+
+function ToggleBreakpoint()
+  local filetype = vim.bo.filetype
+  local current_line = vim.fn.line(".")
+  local indent = vim.fn.indent(current_line)
+
+  if filetype == "python" then
+    -- Insert `breakpoint()` at the current line, maintaining indentation
+    local line_content = vim.fn.getline(current_line)
+
+    if line_content:find("breakpoint%(") == nil then
+      -- Add `breakpoint()` without removing existing content
+      local new_line = string.rep(" ", indent) .. "breakpoint()"
+      vim.fn.append(current_line - 1, new_line)
+    else
+      -- If `breakpoint()` already exists, remove it
+      vim.fn.setline(current_line, line_content:gsub("breakpoint%(%s*%)", ""))
+    end
+  else
+    -- Toggle Dap breakpoint
+    require("dap").toggle_breakpoint()
+  end
+end
 
 local dap = require("dap")
 local dap_go = require("dap-go")
 
--- Helper function to run `go test` and handle notifications
 local function run_go_test_command(cmd, success_title, fail_title)
-  local output = vim.fn.systemlist(cmd)
+  -- Run the command in the current file's directory
+  local file_dir = vim.fn.expand("%:p:h") -- Get the directory of the current file
+  local output = vim.fn.systemlist("cd " .. file_dir .. " && " .. cmd)
   local output_str = table.concat(output, "\n")
   local timeout = 10000
 
@@ -61,7 +84,7 @@ local function run_go_test_command(cmd, success_title, fail_title)
     vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
   else
     vim.notify(
-      "Error running `go test`:\n" .. output_str,
+      "Error running go test:\n" .. output_str,
       vim.log.levels.ERROR,
       { title = fail_title, timeout = timeout }
     )
@@ -96,11 +119,102 @@ local function run_go_tests()
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
 
-local function debug_test()
+local function debug_go_test()
   dap_go.debug_test()
   if not dap.repl.open() then
     dap.repl.toggle()
   end
+end
+
+local function run_pytest_command(cmd, success_title, fail_title)
+  -- Find the root of the project
+  local project_root = vim.fn.getcwd()
+  local venv_path = project_root .. "/.venv/bin/activate"
+  local timeout = 5000
+
+  -- Check if .venv exists
+  if vim.fn.filereadable(venv_path) == 1 or vim.fn.isdirectory(project_root .. "/.venv") == 1 then
+    -- Prepend the .venv Python binary to the command
+    local python_bin = project_root .. "/.venv/bin/python"
+    cmd = python_bin .. " -m " .. cmd
+  else
+    vim.notify(
+      "No .venv found in the project root!",
+      vim.log.levels.WARN,
+      { title = "Virtual Environment Warning", timeout = timeout }
+    )
+    return
+  end
+
+  -- Run the command
+  local output = vim.fn.systemlist(cmd)
+  local output_str = table.concat(output, "\n")
+
+  -- Check the result and notify
+  if vim.v.shell_error == 0 then
+    vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
+  else
+    vim.notify("Error running pytest:\n" .. output_str, vim.log.levels.ERROR, { title = fail_title, timeout = timeout })
+  end
+end
+
+local function run_nearest_pytest()
+  -- Search backward from the cursor to find the nearest test function
+  local cursor_line = vim.fn.line(".")
+  local test_name = nil
+
+  -- Search backward for a function definition starting with "test_"
+  for line = cursor_line, 1, -1 do
+    local current_line = vim.fn.getline(line)
+    test_name = current_line:match("^def%s+(test_%w+)")
+    if test_name then
+      break
+    end
+  end
+
+  -- If no test name is found, notify the user
+  if not test_name then
+    vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Pytest" })
+    return
+  end
+
+  -- Build the pytest command to run the specific test
+  local cmd = string.format("pytest -v -k '%s'", test_name)
+  run_pytest_command(cmd, "Pytest Success", "Pytest Failed")
+end
+
+local function run_all_pytests()
+  local cmd = "pytest -v"
+  run_pytest_command(cmd, "Pytest Success", "Pytest Failed")
+end
+
+local function debug_pytest()
+  -- Get the nearest test name under the cursor
+  local cursor_line = vim.fn.line(".")
+  local test_name = nil
+
+  -- Search backward for the nearest test function starting with "test_"
+  for line = cursor_line, 1, -1 do
+    local current_line = vim.fn.getline(line)
+    test_name = current_line:match("^def%s+(test_%w+)")
+    if test_name then
+      break
+    end
+  end
+
+  if not test_name then
+    vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Debug Pytest" })
+    return
+  end
+
+  -- Build the pytest command
+  local cmd = string.format("startenv && pytest -v -k '%s' -s", test_name)
+
+  -- Open the terminal with snacks
+  require("snacks").terminal.open()
+  vim.cmd("startinsert") -- Ensure insert mode is active in the terminal
+  vim.api.nvim_put({ cmd }, "c", true, true)
+  vim.notify("Running command in terminal: " .. cmd, vim.log.levels.INFO, { title = "Debug Pytest" })
 end
 
 -- Resume last telescope session
@@ -183,7 +297,13 @@ vim.keymap.set(
   { noremap = true, silent = true, desc = "Resume or Buffers" }
 )
 -- Create a command to trigger the function
+vim.api.nvim_set_keymap("c", "bb", ":lua ToggleBreakpoint()<CR>", { noremap = true, silent = true })
+
+vim.api.nvim_create_user_command("Pytest", run_nearest_pytest, {})
+vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
+vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
+
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
-vim.api.nvim_create_user_command("Gotestd", debug_test, {})
+vim.api.nvim_create_user_command("Gotestd", debug_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
 vim.keymap.set("c", "Codelens", "lua vim.lsp.codelens.run()", { desc = "Run CodeLens" })
