@@ -11,25 +11,6 @@ lspconfig.eslint.setup({
     -- Add your custom on_attach functions here
   end,
 })
--- Make tabs work to move through intellisence menus
--- Ensure cmp is installed and required
-local cmp = require("cmp")
-cmp.setup({
-  mapping = {
-    ["<Tab>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
-    ["<S-Tab>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
-    ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item.
-    ["<C-e>"] = cmp.mapping.close(), -- Close the completion menu.
-  },
-  sources = {
-    { name = "nvim_lsp" }, -- LSP source
-    { name = "buffer" }, -- Buffer source
-    { name = "path" }, -- File path source
-    { name = "luasnip" }, -- Snippets source
-  },
-  -- Other cmp configurations...
-})
-
 require("dap-go").setup()
 
 lspconfig.ruff.setup({})
