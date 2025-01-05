@@ -10,7 +10,6 @@ vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
-    { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
     -- import any extras modules here
     { import = "lazyvim.plugins.extras.lang.typescript" },
@@ -58,17 +57,3 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*" },
   command = "setlocal spell spelllang=en",
 })
-
-require("telescope").setup({
-  defaults = {
-    cwd = vim.fn.getcwd(), -- Use the current working directory set by vim-rooter
-  },
-})
-
--- Optional: Create a Telescope command that always opens in the root directory
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>ff",
-  "<cmd>lua require('telescope.builtin').find_files({ cwd = vim.fn.getcwd() })<CR>",
-  { noremap = true, silent = true }
-)
