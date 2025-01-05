@@ -57,3 +57,16 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*" },
   command = "setlocal spell spelllang=en",
 })
+
+require("fzf-lua").setup({
+  keymap = {
+    builtin = {
+      ["<Tab>"] = "down",
+      ["<S-Tab>"] = "up", -- Shift-Tab for moving up
+    },
+    fzf = {
+      ["tab"] = "down",
+      ["shift-tab"] = "up", -- Shift-Tab for moving up
+    },
+  },
+})
