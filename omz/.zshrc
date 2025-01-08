@@ -369,3 +369,9 @@ export NVM_DIR="$HOME/.nvm"
 # Custom key binings
 bindkey '\t\t' autosuggest-accept
 bindkey -M viins 'jk' vi-cmd-mode
+
+
+# Source the local shell conf
+if [ -f "$HOME/.zshrc.local" ]; then
+  source "$HOME/.zshrc.local"
+fi
