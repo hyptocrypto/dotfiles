@@ -1,4 +1,6 @@
-# 💤 LazyVim
+My configs.
 
-A starter template for [LazyVim](https://github.com/LazyVim/LazyVim).
-Refer to the [documentation](https://lazyvim.github.io/installation) to get started.
+Iterm2
+OhMyZsh
+Neovim (LazyVim)
+
