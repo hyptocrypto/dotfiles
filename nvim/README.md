@@ -1,6 +1,6 @@
 My configs.
 
-Iterm2
-OhMyZsh
+Iterm2 <br>
+OhMyZsh<br>
 Neovim (LazyVim)
 
