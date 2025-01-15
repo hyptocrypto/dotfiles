@@ -2,6 +2,7 @@
 syntax on
 set number
 set relativenumber
+set clipboard=unnamedplus
 
 " Turn backup off, since most stuff is in SVN, git etc. anyway...
 set nobackup
