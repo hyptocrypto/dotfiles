@@ -1,22 +1,21 @@
 return {
-  "saghen/blink.cmp",
-  opts = function(_, opts)
-    opts.keymap = {
-      ["<CR>"] = { "accept", "fallback" },
-      ["<Tab>"] = {
-        "select_next",
-        "snippet_forward",
-        "fallback",
-      },
-      ["<S-Tab>"] = {
-        "select_prev",
-        "snippet_backward",
-        "fallback",
-      },
-      ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
-      ["<C-e>"] = { "hide" },
-      ["<C-u>"] = { "scroll_documentation_up", "fallback" },
-      ["<C-d>"] = { "scroll_documentation_down", "fallback" },
-    }
-  end,
+  {
+    "saghen/blink.cmp",
+    version = "v0.*",
+    opts = function(_, opts)
+      opts.keymap = vim.tbl_deep_extend("force", opts.keymap or {}, {
+        preset = "enter",
+        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+      })
+
+      opts.completion = vim.tbl_deep_extend("force", opts.completion or {}, {
+        list = {
+          selection = { auto_insert = true },
+        },
+      })
+
+      return opts
+    end,
+  },
 }
