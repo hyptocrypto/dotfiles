@@ -14,7 +14,7 @@ lspconfig.eslint.setup({
 require("dap-go").setup()
 
 lspconfig.ruff.setup({})
-vim.api.nvim_create_autocmd("BufWritePre", {
+vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = "*.py",
   callback = function()
     vim.lsp.buf.code_action({
