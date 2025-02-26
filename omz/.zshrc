@@ -367,9 +367,19 @@ export NVM_DIR="$HOME/.nvm"
 
 
 # Custom key binings
+bindkey -v
 bindkey '\t\t' autosuggest-accept
 bindkey -M viins 'jk' vi-cmd-mode
+expand_and_accept_cmd() {
+  zle expand-or-complete
+  zle accept-line
+}
 
+# Register the widget
+zle -N expand_and_accept_cmd
+
+# Bind Enter (`^M`) in vi command mode (`vicmd`) to first expand, then execute
+bindkey -M vicmd '^M' expand_and_accept_cmd
 
 # Source the local shell conf
 if [ -f "$HOME/.zshrc.local" ]; then
