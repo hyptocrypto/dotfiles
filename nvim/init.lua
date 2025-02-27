@@ -101,3 +101,16 @@ lspconfig.gopls.setup({
   },
   -- other options
 })
+
+--- Snacks pickers
+vim.keymap.set("n", "<leader>,", function()
+  Snacks.picker.buffers({})
+end, { desc = "[P]Snacks picker buffers" })
+
+vim.keymap.set("n", "<leader>/", function()
+  Snacks.picker.grep({})
+end, { desc = "[P]Snacks picker grep" })
+
+vim.keymap.set("n", "<leader><space>", function()
+  Snacks.picker.files({})
+end, { desc = "[P]Snacks picker grep" })
