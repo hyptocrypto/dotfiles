@@ -62,11 +62,11 @@ require("fzf-lua").setup({
   keymap = {
     builtin = {
       ["<Tab>"] = "down",
-      ["<S-Tab>"] = "up", -- Shift-Tab for moving up
+      ["<S-Tab>"] = "up",
     },
     fzf = {
       ["tab"] = "down",
-      ["shift-tab"] = "up", -- Shift-Tab for moving up
+      ["shift-tab"] = "up",
     },
   },
 })

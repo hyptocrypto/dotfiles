@@ -50,7 +50,7 @@ function Insert_iferr()
     "    return err",
     "}",
   }
-  local row, _ = unpack(vim.api.nvim_win_get_cursor(0)) -- Get the current cursor position
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0)) -- Get the current cursor position
   vim.api.nvim_buf_set_lines(0, row, row, false, lines) -- Insert the lines below the cursor
 end
 vim.api.nvim_set_keymap("c", "ifer", ":lua Insert_iferr()<CR>", { noremap = true, silent = true })
