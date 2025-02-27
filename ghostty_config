@@ -1,0 +1,26 @@
+# Basic config for my ghostty terminal. 
+# File belongs at ~/.config/ghostty/config
+
+font-family = "JetBrains Mono"
+
+font-size = 15
+font-feature = -calt, -liga, -dlig
+background-opacity = 0.9
+
+theme = "Nord"
+
+# Keybindings
+# Move to the next tab with Shift+Escape
+keybind = "shift+escape=next_tab"
+
+# Split horizontally with Cmd+Shift+D (macOS) or Win+Shift+D (Windows)
+keybind = "super+shift+d=new_split:right"
+
+# Split vertically with Cmd+D (macOS) or Win+D (Windows)
+keybind = "super+d=new_split:down"
+
+# # Move to the next pane with Ctrl+Escape
+keybind = "ctrl+escape=goto_split:next"
+#
+# # Close the current pane or tab with Cmd+W (macOS) or Win+W (Windows)
+keybind = "super+w=close_surface"
