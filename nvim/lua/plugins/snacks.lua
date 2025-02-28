@@ -278,8 +278,8 @@ return {
         doc = {
           inline = false,
           float = true,
-          max_width = 60,
-          max_height = 30,
+          max_width = math.floor(vim.o.columns * 0.5), -- 10% of screen width
+          max_height = math.floor(vim.o.lines * 0.5), -- 10% of screen height
         },
       },
     },
