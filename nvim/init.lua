@@ -52,65 +52,18 @@ vim.opt.smarttab = true
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 
-lspconfig.gopls.setup({
-  on_attach = function(client, bufnr)
-    if client.server_capabilities.codeLensProvider then
-      vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
-        buffer = bufnr,
-        callback = function()
-          vim.lsp.codelens.refresh()
-        end,
-      })
+vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme" }, {
+  callback = function()
+    local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+    if not normal.bg then
+      return
     end
+    io.write(string.format("\027]11;#%06x\027\\", normal.bg))
   end,
-  settings = {
-    gopls = {
-      gofumpt = true,
-      codelenses = {
-        gc_details = true,
-        generate = true,
-        regenerate_cgo = true,
-        run_govulncheck = true,
-        test = true,
-        tidy = true,
-        upgrade_dependency = true,
-        vendor = true,
-      },
-      hints = {
-        assignVariableTypes = false,
-        compositeLiteralFields = false,
-        compositeLiteralTypes = false,
-        constantValues = false,
-        functionTypeParameters = false,
-        parameterNames = false,
-        rangeVariableTypes = false,
-      },
-      analyses = {
-        fieldalignment = true,
-        nilness = true,
-        unusedparams = true,
-        unusedwrite = true,
-        useany = true,
-      },
-      usePlaceholders = true,
-      completeUnimported = true,
-      staticcheck = true,
-      directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules" },
-      semanticTokens = true,
-    },
-  },
-  -- other options
 })
 
---- Snacks pickers
-vim.keymap.set("n", "<leader>,", function()
-  Snacks.picker.buffers({})
-end, { desc = "[P]Snacks picker buffers" })
-
-vim.keymap.set("n", "<leader>/", function()
-  Snacks.picker.grep({})
-end, { desc = "[P]Snacks picker grep" })
-
-vim.keymap.set("n", "<leader><space>", function()
-  Snacks.picker.files({})
-end, { desc = "[P]Snacks picker grep" })
+vim.api.nvim_create_autocmd("UILeave", {
+  callback = function()
+    io.write("\027]111\027\\")
+  end,
+})
