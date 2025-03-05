@@ -23,15 +23,6 @@ return {
       end,
       desc = "Live Grep (Root Dir)",
     },
-
-    {
-      "<leader>Ds",
-      function()
-        -- Use fzf to pick a directory before running live_grep
-        require("fzf-lua").live_grep_glob()
-      end,
-      desc = "Live Grep in Specific Directory",
-    },
   },
   config = function()
     require("fzf-lua").setup({
