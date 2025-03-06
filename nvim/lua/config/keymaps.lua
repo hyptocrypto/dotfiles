@@ -226,7 +226,7 @@ local function debug_pytest()
 end
 
 -- Create a command to trigger the function
-vim.api.nvim_set_keymap("c", "bb", ":lua ToggleBreakpoint()<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("c", "bb", ":lua ToggleBreakpoint()<CR>:<Esc>", { noremap = true, silent = true })
 
 vim.api.nvim_create_user_command("Pytest", run_nearest_pytest, {})
 vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
