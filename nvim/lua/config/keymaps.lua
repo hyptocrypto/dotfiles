@@ -2,6 +2,9 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
+local dap = require("dap")
+local dap_go = require("dap-go")
+
 -- Function to toggle between the current buffer and Neo-tree
 function ToggleNeoTree()
   local bufnr = vim.fn.bufnr()
@@ -43,6 +46,8 @@ vim.api.nvim_set_keymap("s", "<S-Tab>", "<", { noremap = true })
 -- Personal
 vim.api.nvim_set_keymap("i", "jk", "<Esc>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "r", "<C-r>", { noremap = true, silent = true })
+--- Dont copy to reg when pasting
+vim.api.nvim_set_keymap("v", "p", '"_dP', { noremap = true, silent = true })
 
 function Insert_iferr()
   local lines = {
@@ -74,12 +79,9 @@ function ToggleBreakpoint()
     end
   else
     -- Toggle Dap breakpoint
-    require("dap").toggle_breakpoint()
+    dap.toggle_breakpoint()
   end
 end
-
-local dap = require("dap")
-local dap_go = require("dap-go")
 
 local function run_go_test_command(cmd, success_title, fail_title)
   -- Run the command in the current file's directory

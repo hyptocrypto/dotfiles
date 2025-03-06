@@ -11,7 +11,6 @@ lspconfig.eslint.setup({
     -- Add your custom on_attach functions here
   end,
 })
-require("dap-go").setup()
 
 lspconfig.ruff.setup({})
 vim.api.nvim_create_autocmd("BufWritePost", {
