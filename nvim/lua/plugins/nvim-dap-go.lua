@@ -14,9 +14,7 @@ end
 return {
   "mfussenegger/nvim-dap",
   dependencies = {
-    "nvim-neotest/nvim-nio",
     "leoluz/nvim-dap-go",
-    "rcarriga/nvim-dap-ui",
   },
   keys = {
     {
