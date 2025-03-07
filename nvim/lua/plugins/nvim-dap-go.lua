@@ -1,15 +1,5 @@
 local dap = require("dap")
-local widgets = require("dap.ui.widgets")
-local sidebar = nil -- Store the sidebar instance
-local function toggleDebugUI()
-  if not sidebar then
-    sidebar = widgets.sidebar(widgets.scopes, { width = 50 })
-  end
-  sidebar.toggle() -- This automatically handles open/close
-
-  -- Toggle the REPL separately
-  dap.repl.toggle()
-end
+local utils = require("common")
 
 return {
   "mfussenegger/nvim-dap",
@@ -28,7 +18,7 @@ return {
           host = "127.0.0.1",
           port = 2345,
         })
-        toggleDebugUI()
+        utils.toggleDebugUI()
       end,
       desc = "Attach Buffalo Dev (DAP)",
     },
@@ -63,7 +53,7 @@ return {
     {
       "<Leader>du",
       function()
-        toggleDebugUI()
+        utils.toggleDebugUI()
       end,
       desc = "Toggle Debug UI (DAP-UI)",
     },

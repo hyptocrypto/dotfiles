@@ -290,6 +290,7 @@ function syncdot() {
         git pull
 
         cp omz/.zshrc ~/.zshrc
+        rm -r  ~/.config/nvim
         cp -r nvim ~/.config/
         source ~/.zshrc
 

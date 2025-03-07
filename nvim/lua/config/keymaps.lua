@@ -131,9 +131,7 @@ end
 
 local function debug_go_test()
   dap_go.debug_test()
-  if not dap.repl.open() then
-    dap.repl.toggle()
-  end
+  require("common").toggleDebugUI()
 end
 
 local function run_pytest_command(cmd, success_title, fail_title)
