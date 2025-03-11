@@ -14,16 +14,16 @@ return {
         layouts = {
           {
             elements = {
-              { id = "scopes", size = 0.4 },
               { id = "breakpoints", size = 0.3 },
               { id = "stacks", size = 0.3 },
             },
-            size = 40,
+            size = 30,
             position = "right",
           },
           {
             elements = {
-              { id = "repl", size = 1 },
+              { id = "repl", size = 0.5 },
+              { id = "scopes", size = 0.5 },
             },
             size = 10,
             position = "bottom",
@@ -63,7 +63,8 @@ return {
       {
         "<Leader>du",
         function()
-          require("dapui").toggle()
+          require("dapui").close()
+          require("dapui").open({ reset = true })
         end,
         desc = "Toggle Debug UI",
       },
@@ -101,13 +102,6 @@ return {
           require("dap").toggle_breakpoint()
         end,
         desc = "Toggle Breakpoint",
-      },
-      {
-        "<Leader>du",
-        function()
-          require("dap").repl.open()
-        end,
-        desc = "Open Debug REPL",
       },
     },
   },
