@@ -1,14 +1,13 @@
+local dap = require("dap")
 return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
-      "rcarriga/nvim-dap-ui", -- UI for nvim-dap
-      "theHamsta/nvim-dap-virtual-text", -- Virtual text for breakpoints
-      "leoluz/nvim-dap-go", -- DAP for Go
-      "nvim-neotest/nvim-nio", -- REQUIRED dependency for nvim-dap-ui
+      "rcarriga/nvim-dap-ui",
+      "leoluz/nvim-dap-go",
+      "nvim-neotest/nvim-nio",
     },
     config = function()
-      local dap = require("dap")
       local dapui = require("dapui")
       require("dap-go").setup(dapui.setup({
         layouts = {
@@ -30,8 +29,28 @@ return {
           },
         },
       }))
-      require("nvim-dap-virtual-text").setup()
+      -- Remove duplicates by keeping only unique names
+      local unique_configs = {}
+      local seen = {}
 
+      for _, config in ipairs(dap.configurations.go or {}) do
+        if not seen[config.name] then
+          table.insert(unique_configs, config)
+          seen[config.name] = true
+        end
+      end
+
+      dap.configurations.go = unique_configs
+
+      -- Add the custom "Attach To Headless" config
+      table.insert(dap.configurations.go, {
+        name = "Attach To Headless (127.0.0.1:2345)",
+        type = "go",
+        request = "attach",
+        mode = "remote",
+        host = "127.0.0.1",
+        port = 2345,
+      })
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
@@ -45,21 +64,6 @@ return {
     end,
 
     keys = {
-
-      {
-        "<Leader>dc",
-        function()
-          require("dap").run({
-            name = "Attach To Headless",
-            type = "go",
-            request = "attach",
-            mode = "remote",
-            host = "127.0.0.1",
-            port = 2345,
-          })
-        end,
-        desc = "Attach Buffalo Dev (DAP)",
-      },
       {
         "<Leader>du",
         function()
@@ -69,39 +73,53 @@ return {
         desc = "Toggle Debug UI",
       },
       {
-        "<Leader>dC",
+        "<Leader>dc",
         function()
-          require("dap").continue()
+          dap.continue()
         end,
         desc = "Start/Continue Debugging",
       },
       {
         "<Leader>dn",
         function()
-          require("dap").step_over()
+          dap.step_over()
         end,
         desc = "Step Over",
       },
       {
         "<Leader>di",
         function()
-          require("dap").step_into()
+          dap.step_into()
         end,
         desc = "Step Into",
       },
       {
         "<Leader>do",
         function()
-          require("dap").step_out()
+          dap.step_out()
         end,
         desc = "Step Out",
       },
       {
         "<Leader>db",
         function()
-          require("dap").toggle_breakpoint()
+          dap.toggle_breakpoint()
         end,
         desc = "Toggle Breakpoint",
+      },
+      {
+        "<Leader>df",
+        function()
+          dap.focus_frame()
+        end,
+        desc = "Focus",
+      },
+      {
+        "<Leader>dt",
+        function()
+          require("dap-go").debug_test()
+        end,
+        desc = "Debug test",
       },
     },
   },

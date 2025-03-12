@@ -6,20 +6,42 @@ local dap = require("dap")
 local dap_go = require("dap-go")
 
 -- Function to toggle between the current buffer and Neo-tree
-function ToggleNeoTree()
-  local bufnr = vim.fn.bufnr()
-  local winid = vim.fn.bufwinid(bufnr)
-  if winid == -1 then
-    -- If the buffer is not in any window, open Neo-tree
-    vim.cmd("Neotree toggle")
+function ToggleNeoTreeOrCode()
+  local neotree_winid = nil
+  local code_winid = nil
+
+  -- Iterate through windows to find Neo-tree and a code file
+  for winnr = 1, vim.fn.winnr("$") do
+    local bufnr = vim.fn.winbufnr(winnr)
+    local buftype = vim.bo[bufnr].buftype
+    local filetype = vim.bo[bufnr].filetype
+
+    if filetype == "neo-tree" then
+      neotree_winid = winnr
+    elseif buftype == "" then
+      code_winid = winnr
+    end
+  end
+
+  if neotree_winid then
+    -- If currently in Neo-tree, switch to the code file
+    if vim.fn.winnr() == neotree_winid then
+      if code_winid then
+        vim.cmd(code_winid .. "wincmd w")
+      end
+    else
+      -- Otherwise, switch to Neo-tree
+      vim.cmd(neotree_winid .. "wincmd w")
+    end
   else
-    -- If the buffer is in a window, go to the next window (Neo-tree)
-    vim.cmd("wincmd w")
+    -- If Neo-tree is not open, focus the first code file window
+    if code_winid then
+      vim.cmd(code_winid .. "wincmd w")
+    end
   end
 end
 
--- Keymap to toggle between the current buffer and Neo-tree
-vim.api.nvim_set_keymap("n", "<leader>t", ":lua ToggleNeoTree()<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>t", ToggleNeoTreeOrCode, { desc = "Toggle between Neo-tree and code file" })
 
 -- Simplify changing variable names
 vim.api.nvim_set_keymap(
@@ -131,7 +153,6 @@ end
 
 local function debug_go_test()
   dap_go.debug_test()
-  require("common").toggleDebugUI()
 end
 
 local function run_pytest_command(cmd, success_title, fail_title)
