@@ -40,10 +40,8 @@ return {
         end
       end
 
-      dap.configurations.go = unique_configs
-
       -- Add the custom "Attach To Headless" config
-      table.insert(dap.configurations.go, {
+      table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2345)",
         type = "go",
         request = "attach",
@@ -51,6 +49,8 @@ return {
         host = "127.0.0.1",
         port = 2345,
       })
+
+      dap.configurations.go = unique_configs
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
@@ -67,8 +67,7 @@ return {
       {
         "<Leader>du",
         function()
-          require("dapui").close()
-          require("dapui").open({ reset = true })
+          require("dapui").toggle({ rest = true })
         end,
         desc = "Toggle Debug UI",
       },

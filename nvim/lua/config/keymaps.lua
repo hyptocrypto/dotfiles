@@ -9,6 +9,7 @@ local dap_go = require("dap-go")
 function ToggleNeoTreeOrCode()
   local neotree_winid = nil
   local code_winid = nil
+  local current_winid = vim.fn.winnr()
 
   -- Iterate through windows to find Neo-tree and a code file
   for winnr = 1, vim.fn.winnr("$") do
@@ -23,20 +24,20 @@ function ToggleNeoTreeOrCode()
     end
   end
 
-  if neotree_winid then
-    -- If currently in Neo-tree, switch to the code file
-    if vim.fn.winnr() == neotree_winid then
-      if code_winid then
-        vim.cmd(code_winid .. "wincmd w")
-      end
-    else
-      -- Otherwise, switch to Neo-tree
-      vim.cmd(neotree_winid .. "wincmd w")
-    end
-  else
-    -- If Neo-tree is not open, focus the first code file window
+  if current_winid ~= code_winid and current_winid ~= neotree_winid then
+    -- If in a window other than code or Neo-tree, switch to code window
     if code_winid then
       vim.cmd(code_winid .. "wincmd w")
+    end
+  elseif current_winid == neotree_winid then
+    -- If in Neo-tree, switch to code window
+    if code_winid then
+      vim.cmd(code_winid .. "wincmd w")
+    end
+  elseif current_winid == code_winid then
+    -- If in code window, switch to Neo-tree window
+    if neotree_winid then
+      vim.cmd(neotree_winid .. "wincmd w")
     end
   end
 end
