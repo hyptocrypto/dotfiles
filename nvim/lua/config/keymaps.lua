@@ -2,9 +2,6 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
-local dap = require("dap")
-local dap_go = require("dap-go")
-
 -- Function to toggle between the current buffer and Neo-tree
 function ToggleNeoTreeOrCode()
   local neotree_winid = nil
@@ -102,7 +99,7 @@ function ToggleBreakpoint()
     end
   else
     -- Toggle Dap breakpoint
-    dap.toggle_breakpoint()
+    require("dap").toggle_breakpoint()
   end
 end
 
@@ -111,7 +108,7 @@ local function run_go_test_command(cmd, success_title, fail_title)
   local file_dir = vim.fn.expand("%:p:h") -- Get the directory of the current file
   local output = vim.fn.systemlist("cd " .. file_dir .. " && " .. cmd)
   local output_str = table.concat(output, "\n")
-  local timeout = 10000
+  local timeout = 5000
 
   if vim.v.shell_error == 0 then
     vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
@@ -150,10 +147,6 @@ end
 local function run_go_tests()
   local cmd = "go test -v"
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
-end
-
-local function debug_go_test()
-  dap_go.debug_test()
 end
 
 local function run_pytest_command(cmd, success_title, fail_title)
@@ -255,6 +248,5 @@ vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
 vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
-vim.api.nvim_create_user_command("Gotestd", debug_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
 vim.keymap.set("c", "Codelens", "lua vim.lsp.codelens.run()", { desc = "Run CodeLens" })

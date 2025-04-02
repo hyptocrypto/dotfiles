@@ -1,4 +1,3 @@
-local dap = require("dap")
 return {
   {
     "mfussenegger/nvim-dap",
@@ -8,13 +7,16 @@ return {
       "nvim-neotest/nvim-nio",
     },
     config = function()
+      local dap = require("dap")
       local dapui = require("dapui")
-      require("dap-go").setup(dapui.setup({
+      require("dap-go").setup()
+
+      dapui.setup({
         layouts = {
           {
             elements = {
-              { id = "breakpoints", size = 0.3 },
               { id = "stacks", size = 0.3 },
+              { id = "breakpoints", size = 0.3 },
             },
             size = 30,
             position = "right",
@@ -28,8 +30,9 @@ return {
             position = "bottom",
           },
         },
-      }))
-      -- Remove duplicates by keeping only unique names
+      })
+
+      -- Clean up duplicate configs
       local unique_configs = {}
       local seen = {}
 
@@ -40,7 +43,7 @@ return {
         end
       end
 
-      -- Add the custom "Attach To Headless" config
+      -- Add custom headless attach config
       table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2345)",
         type = "go",
@@ -51,6 +54,7 @@ return {
       })
 
       dap.configurations.go = unique_configs
+
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
@@ -61,65 +65,72 @@ return {
       dap.listeners.before.event_exited["dapui_config"] = function()
         dapui.close()
       end
+      dap.listeners.after.event_stopped["dapui_config"] = function()
+        dapui.open()
+      end
     end,
 
-    keys = {
-      {
-        "<Leader>du",
-        function()
-          require("dapui").toggle({ rest = true })
-        end,
-        desc = "Toggle Debug UI",
-      },
-      {
-        "<Leader>dc",
-        function()
-          dap.continue()
-        end,
-        desc = "Start/Continue Debugging",
-      },
-      {
-        "<Leader>dn",
-        function()
-          dap.step_over()
-        end,
-        desc = "Step Over",
-      },
-      {
-        "<Leader>di",
-        function()
-          dap.step_into()
-        end,
-        desc = "Step Into",
-      },
-      {
-        "<Leader>do",
-        function()
-          dap.step_out()
-        end,
-        desc = "Step Out",
-      },
-      {
-        "<Leader>db",
-        function()
-          dap.toggle_breakpoint()
-        end,
-        desc = "Toggle Breakpoint",
-      },
-      {
-        "<Leader>df",
-        function()
-          dap.focus_frame()
-        end,
-        desc = "Focus",
-      },
-      {
-        "<Leader>dt",
-        function()
-          require("dap-go").debug_test()
-        end,
-        desc = "Debug test",
-      },
-    },
+    keys = function()
+      local dap = require("dap")
+      local dap_go = require("dap-go")
+      return {
+        {
+          "<Leader>du",
+          function()
+            require("dapui").toggle({ reset = true })
+          end,
+          desc = "Toggle Debug UI",
+        },
+        {
+          "<Leader>dc",
+          function()
+            dap.continue()
+          end,
+          desc = "Start/Continue Debugging",
+        },
+        {
+          "<Leader>dn",
+          function()
+            dap.step_over()
+          end,
+          desc = "Step Over",
+        },
+        {
+          "<Leader>di",
+          function()
+            dap.step_into()
+          end,
+          desc = "Step Into",
+        },
+        {
+          "<Leader>do",
+          function()
+            dap.step_out()
+          end,
+          desc = "Step Out",
+        },
+        {
+          "<Leader>db",
+          function()
+            dap.toggle_breakpoint()
+          end,
+          desc = "Toggle Breakpoint",
+        },
+        {
+          "<Leader>df",
+          function()
+            dap.focus_frame()
+          end,
+          desc = "Focus",
+        },
+        {
+          "<Leader>dt",
+          function()
+            dap_go.debug_test()
+          end,
+          desc = "Debug test",
+        },
+      }
+    end,
   },
 }

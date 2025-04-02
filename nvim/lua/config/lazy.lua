@@ -47,9 +47,3 @@ require("lazy").setup({
     },
   },
 })
-
--- Enable spell checking for all files
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { "*" },
-  command = "setlocal spell spelllang=en",
-})
