@@ -250,14 +250,3 @@ vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
 vim.keymap.set("c", "Codelens", "lua vim.lsp.codelens.run()", { desc = "Run CodeLens" })
-
-local harpoon_mark = require("harpoon.mark")
-local harpoon_ui = require("harpoon.ui")
-
-vim.keymap.set("n", "<leader>ha", function()
-  harpoon_mark.add_file()
-end, { desc = "Harpoon: Add file" })
-
-vim.keymap.set("n", "<leader>hh", function()
-  harpoon_ui.toggle_quick_menu()
-end, { desc = "Harpoon: Toggle quick menu" })
