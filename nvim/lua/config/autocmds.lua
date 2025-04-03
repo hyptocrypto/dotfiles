@@ -30,3 +30,44 @@ vim.api.nvim_create_user_command("Jsfunc", function()
   -- Move the cursor inside the function body
   vim.api.nvim_win_set_cursor(0, { row + 1, col + 4 })
 end, {})
+
+vim.api.nvim_create_user_command("Golines", function()
+  vim.cmd("silent! %!golines --max-len=130 --base-formatter=gofumpt")
+end, {})
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+  pattern = "*.py",
+  callback = function()
+    vim.lsp.buf.code_action({
+      context = {
+        only = {
+          "source.fixAll.ruff",
+        },
+      },
+      apply = true,
+    })
+    vim.lsp.buf.format({ async = false })
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme" }, {
+  callback = function()
+    local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+    if not normal.bg then
+      return
+    end
+    io.write(string.format("\027]11;#%06x\027\\", normal.bg))
+  end,
+})
+
+vim.api.nvim_create_autocmd("UILeave", {
+  callback = function()
+    io.write("\027]111\027\\")
+  end,
+})
+
+-- Enable spell checking for all files
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*" },
+  command = "setlocal spell spelllang=en",
+})

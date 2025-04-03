@@ -2,6 +2,15 @@ return {
   "neovim/nvim-lspconfig",
   opts = {
     servers = {
+
+      golangci_lint_ls = {
+        cmd = { "golangci-lint-langserver" },
+        filetypes = { "go", "gomod" },
+        root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
+        init_options = {
+          command = { "golangci-lint", "run", "--out-format", "json" },
+        },
+      },
       -- Volar for Vue files
       volar = {
         filetypes = { "vue" },
@@ -75,11 +84,26 @@ return {
               rangeVariableTypes = false,
             },
             analyses = {
-              fieldalignment = true,
               nilness = true,
               unusedparams = true,
               unusedwrite = true,
-              useany = true,
+              fieldalignment = true,
+              shadow = true,
+              unusedvariable = true,
+              ST1000 = true, -- style checks
+              ST1005 = true,
+              unusedresult = true,
+              unreachable = true,
+              loopclosure = true,
+              lostcancel = true,
+              printf = true,
+              ifaceassert = true,
+              stringintconv = true,
+              atomicalign = true,
+              undeclaredname = true,
+              fillreturns = true,
+              nonewvars = true,
+              stacktrace = true,
             },
             usePlaceholders = true,
             completeUnimported = true,
@@ -101,6 +125,7 @@ return {
           packageManager = "npm",
           autoFixOnSave = true,
           format = true,
+          workingDirectory = { mode = "auto" },
         },
       },
     },
