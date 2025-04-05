@@ -1,4 +1,4 @@
-return {
+m = {
   "ibhagwan/fzf-lua",
   keys = {
     {
@@ -39,3 +39,4 @@ return {
     })
   end,
 }
+return {}
