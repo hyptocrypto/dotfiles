@@ -66,8 +66,8 @@ return {
         doc = {
           inline = true,
           float = true,
-          max_width = vim.g.neovim_mode == "skitty" and 5 or 60,
-          max_height = vim.g.neovim_mode == "skitty" and 2.5 or 30,
+          max_width = 50,
+          max_height = 50,
         },
       },
     },

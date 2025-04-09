@@ -19,7 +19,7 @@ return {
         },
         settings = {
           volar = {
-            validation = { template = true, script = true, style = true },
+            validation = { template = true, script = true, style = true, hover = true },
           },
         },
       },
