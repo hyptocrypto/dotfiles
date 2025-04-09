@@ -145,7 +145,15 @@ export NVM_DIR="$HOME/.nvm"
 
 
 function shellconf() {
-        vim ~/.zshrc && source ~/.zshrc
+        nvim ~/.zshrc && source ~/.zshrc
+}
+
+
+function vimconf() {
+        cur_dir=($pwd)
+        cd ~/.config.nvim &&
+        nvim . &&
+        cd "$cur_dir"
 }
 
 function makepr() {
