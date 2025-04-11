@@ -185,6 +185,10 @@ function gmain() {
         echo "$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
 }
 
+function gcmain(){
+    git checkout $(gmain)
+}
+
 function gcurr() {
         echo "$(git rev-parse --abbrev-ref HEAD)"
 }
@@ -198,49 +202,60 @@ function makepr() {
 }
 
 function gitreb() {
-        if output=$(git status --porcelain) && ! [ -z "$output" ]; then
-            echo "Stashing changes"
-            STASHED=true
-            git stash -q  --include-untracked
-        else
-            echo "Working Tree Clean"
-			STASHED=false
-        fi
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-        MAIN_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
-        git fetch -q origin &&
-        echo "Rebaseing on origin/$MAIN_BRANCH"
-        git rebase -q  "origin/$MAIN_BRANCH"
+    if output=$(git status --porcelain) && [ -n "$output" ]; then
+        echo "Stashing changes"
+        STASHED=true
+        git stash -q --include-untracked
+    else
+        echo "Working Tree Clean"
+        STASHED=false
+    fi
 
-        if "$STASHED"
-            then
-                echo "Poping stashed changes"
-                git stash pop -q
-        fi
+    MAIN_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
 
+    echo "Checking out $MAIN_BRANCH to pull latest changes"
+    git checkout -q "$MAIN_BRANCH"
+    git pull -q origin "$MAIN_BRANCH"
+
+    echo "Returning to $CURRENT_BRANCH and rebasing onto $MAIN_BRANCH"
+    git checkout -q "$CURRENT_BRANCH"
+    git rebase -q "$MAIN_BRANCH"
+
+    if $STASHED; then
+        echo "Popping stashed changes"
+        git stash pop -q
+    fi
 }
 
+
 function gitmer() {
-        if output=$(git status --porcelain) && ! [ -z "$output" ]; then
-            echo "Stashing changes"
-            STASHED=true
-            git stash -q  --include-untracked
-        else
-            echo "Working Tree Clean"
-	    STASHED=false
-        fi
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-        MAIN_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
-        git fetch -q origin &&
-        echo "Merging origin/$MAIN_BRANCH"
-        git merge -q  "origin/$MAIN_BRANCH"
+    if output=$(git status --porcelain) && [ -n "$output" ]; then
+        echo "Stashing changes"
+        STASHED=true
+        git stash -q --include-untracked
+    else
+        echo "Working Tree Clean"
+        STASHED=false
+    fi
 
-        if "$STASHED"
-            then
-                echo "Poping stashed changes"
-                git stash pop -q
-        fi
+    MAIN_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
 
+    echo "Checking out $MAIN_BRANCH to pull latest changes"
+    git checkout -q "$MAIN_BRANCH"
+    git pull -q origin "$MAIN_BRANCH"
+
+    echo "Returning to $CURRENT_BRANCH and merging with $MAIN_BRANCH"
+    git checkout -q "$CURRENT_BRANCH"
+    git merge -q "$MAIN_BRANCH"
+
+    if $STASHED; then
+        echo "Popping stashed changes"
+        git stash pop -q
+    fi
 }
 
 function makeenv() {

@@ -8,7 +8,14 @@ return {
         filetypes = { "go", "gomod" },
         root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
         init_options = {
-          command = { "golangci-lint", "run", "--out-format", "json" },
+          command = {
+            "golangci-lint",
+            "run",
+            "--config",
+            "/Users/julianbaumgartner/.config/nvim/extra/.golangci.yml",
+            "--out-format",
+            "json",
+          },
         },
       },
       -- Volar for Vue files
