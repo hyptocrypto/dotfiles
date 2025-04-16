@@ -2,13 +2,14 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
--- Function to toggle between the current buffer and Neo-tree
+-- Function to toggle between Neo-tree, code file, and Dadbod UI
 function ToggleNeoTreeOrCode()
   local neotree_winid = nil
   local code_winid = nil
+  local dbui_winid = nil
   local current_winid = vim.fn.winnr()
 
-  -- Iterate through windows to find Neo-tree and a code file
+  -- Iterate through all windows
   for winnr = 1, vim.fn.winnr("$") do
     local bufnr = vim.fn.winbufnr(winnr)
     local buftype = vim.bo[bufnr].buftype
@@ -16,25 +17,36 @@ function ToggleNeoTreeOrCode()
 
     if filetype == "neo-tree" then
       neotree_winid = winnr
+    elseif filetype == "dbui" then
+      dbui_winid = winnr
     elseif buftype == "" then
       code_winid = winnr
     end
   end
 
-  if current_winid ~= code_winid and current_winid ~= neotree_winid then
-    -- If in a window other than code or Neo-tree, switch to code window
-    if code_winid then
-      vim.cmd(code_winid .. "wincmd w")
-    end
-  elseif current_winid == neotree_winid then
-    -- If in Neo-tree, switch to code window
-    if code_winid then
-      vim.cmd(code_winid .. "wincmd w")
-    end
-  elseif current_winid == code_winid then
-    -- If in code window, switch to Neo-tree window
+  -- Cycle: code -> neo-tree -> dbui -> code
+  if current_winid == code_winid then
     if neotree_winid then
       vim.cmd(neotree_winid .. "wincmd w")
+    elseif dbui_winid then
+      vim.cmd(dbui_winid .. "wincmd w")
+    end
+  elseif current_winid == neotree_winid then
+    if dbui_winid then
+      vim.cmd(dbui_winid .. "wincmd w")
+    elseif code_winid then
+      vim.cmd(code_winid .. "wincmd w")
+    end
+  elseif current_winid == dbui_winid then
+    if code_winid then
+      vim.cmd(code_winid .. "wincmd w")
+    elseif neotree_winid then
+      vim.cmd(neotree_winid .. "wincmd w")
+    end
+  else
+    -- Fallback: go to code window if not in any known window
+    if code_winid then
+      vim.cmd(code_winid .. "wincmd w")
     end
   end
 end
@@ -249,4 +261,3 @@ vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
-vim.keymap.set("c", "Codelens", "lua vim.lsp.codelens.run()", { desc = "Run CodeLens" })

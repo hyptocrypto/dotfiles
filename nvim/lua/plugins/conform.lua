@@ -5,6 +5,7 @@ return {
       sql = { "sqlfluff" },
       pgsql = { "sqlfluff" },
       go = { "gopls", "gofmt", "goimports" },
+      html = { "djlint" },
     },
     formatters = {
       sqlfluff = {

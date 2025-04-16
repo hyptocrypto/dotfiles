@@ -38,6 +38,7 @@ return {
         desc = "Notification History",
       },
     },
+
     opts = {
       picker = {
         win = {
@@ -55,10 +56,10 @@ return {
           frecency = true,
         },
         formatters = {
-          file = {
-            filename_first = true, -- display filename before the file path
-            truncate = 80,
-          },
+          -- file = {
+          --   filename_first = true, -- display filename before the file path
+          --   truncate = 80,
+          -- },
         },
       },
       image = {
