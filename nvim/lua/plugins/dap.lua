@@ -23,8 +23,7 @@ return {
           },
           {
             elements = {
-              { id = "repl", size = 0.5 },
-              { id = "scopes", size = 0.5 },
+              { id = "scopes", size = 1 },
             },
             size = 10,
             position = "bottom",
@@ -87,6 +86,13 @@ return {
             dap.continue()
           end,
           desc = "Start/Continue Debugging",
+        },
+        {
+          "<Leader>dC",
+          function()
+            dap.clear_breakpoints()
+          end,
+          desc = "Clear all breakpoints",
         },
         {
           "<Leader>dn",

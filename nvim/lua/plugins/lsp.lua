@@ -12,7 +12,7 @@ return {
             "golangci-lint",
             "run",
             "--config",
-            "/Users/julianbaumgartner/.config/nvim/conf/.golangci.yml",
+            "/Users/julianbaumgartner/.config/nvim/extra/.golangci.yml",
             "--out-format",
             "json",
           },
