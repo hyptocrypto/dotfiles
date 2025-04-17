@@ -150,7 +150,7 @@ function shellconf() {
 
 
 function vimconf() {
-        cur_dir=($pwd)
+        cur_dir="$PWD"
         cd ~/.config/nvim &&
         nvim . &&
         cd "$cur_dir"
