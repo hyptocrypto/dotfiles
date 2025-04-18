@@ -61,6 +61,9 @@ vim.api.nvim_set_keymap(
   { noremap = true, silent = true }
 )
 
+vim.keymap.set("n", "D", "<C-d>zz", { noremap = true, silent = true })
+vim.keymap.set("n", "U", "<C-u>zz", { noremap = true, silent = true })
+
 -- Make backspace behave and wrap on newlines
 vim.opt.backspace = { "eol", "start", "indent" }
 vim.opt.whichwrap:append("<,>,h,l")

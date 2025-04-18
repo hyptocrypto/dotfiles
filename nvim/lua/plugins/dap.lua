@@ -19,7 +19,7 @@ return {
               { id = "breakpoints", size = 0.3 },
             },
             size = 30,
-            position = "right",
+            position = "left",
           },
           {
             elements = {
@@ -56,6 +56,10 @@ return {
 
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
+        local ok, neotree = pcall(require, "neo-tree.command")
+        if ok then
+          neotree.execute({ action = "close" })
+        end
         dapui.open()
       end
       dap.listeners.before.event_terminated["dapui_config"] = function()
@@ -92,7 +96,7 @@ return {
           function()
             dap.clear_breakpoints()
           end,
-          desc = "Clear all breakpoints",
+          desc = "Clear breakpoints",
         },
         {
           "<Leader>dn",
