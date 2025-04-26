@@ -31,8 +31,8 @@ return {
           },
           {
             elements = {
-              { id = "repl", size = 0.4 },
-              { id = "scopes", size = 0.6 },
+              { id = "watches", size = 0.5 },
+              { id = "scopes", size = 0.5 },
             },
             size = 10,
             position = "bottom",
