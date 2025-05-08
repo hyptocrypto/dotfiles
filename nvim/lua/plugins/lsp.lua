@@ -2,7 +2,6 @@ return {
   "neovim/nvim-lspconfig",
   opts = {
     servers = {
-
       golangci_lint_ls = {
         cmd = { "golangci-lint-langserver" },
         filetypes = { "go", "gomod" },
@@ -20,8 +19,11 @@ return {
       },
       -- Volar for Vue files
       volar = {
-        filetypes = { "vue" },
+        filetypes = { "vue", "javascript", "typescript", "json" },
         init_options = {
+          typescript = {
+            tsdk = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/typescript/lib",
+          },
           vue = { hybridMode = false },
         },
         settings = {
@@ -30,7 +32,26 @@ return {
           },
         },
       },
-
+      ts_ls = {
+        init_options = {
+          plugins = {
+            {
+              name = "@vue/typescript-plugin",
+              location = vim.fn.stdpath("data")
+                .. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
+              languages = { "vue" },
+            },
+          },
+        },
+      },
+      eslint = {
+        settings = {
+          validate = "on",
+          packageManager = "npm",
+          format = true,
+          workingDirectory = { mode = "auto" },
+        },
+      },
       -- TypeScript & JavaScript LSP
       tsserver = {
         filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
@@ -58,16 +79,6 @@ return {
 
       -- Go LSP with Advanced Config
       gopls = {
-        on_attach = function(client, bufnr)
-          if client.server_capabilities.codeLensProvider then
-            vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
-              buffer = bufnr,
-              callback = function()
-                vim.lsp.codelens.refresh()
-              end,
-            })
-          end
-        end,
         settings = {
           gopls = {
             gofumpt = true,
@@ -95,10 +106,10 @@ return {
               unusedparams = true,
               unusedwrite = true,
               fieldalignment = true,
-              shadow = true,
+              shadow = false,
               unusedvariable = true,
-              ST1000 = true, -- style checks
-              ST1005 = true,
+              ST1000 = false, -- style checks
+              ST1005 = false,
               unusedresult = true,
               unreachable = true,
               loopclosure = true,
@@ -115,7 +126,7 @@ return {
             usePlaceholders = true,
             completeUnimported = true,
             staticcheck = true,
-            directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules" },
+            directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules", "-vendor-patched" },
             semanticTokens = true,
           },
         },
@@ -124,17 +135,6 @@ return {
       -- Docker LSP
       dockerls = {},
       docker_compose_language_service = {},
-
-      -- ESLint for linting errors
-      eslint = {
-        settings = {
-          validate = "on",
-          packageManager = "npm",
-          autoFixOnSave = true,
-          format = true,
-          workingDirectory = { mode = "auto" },
-        },
-      },
     },
   },
 }

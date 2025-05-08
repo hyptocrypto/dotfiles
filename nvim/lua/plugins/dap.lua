@@ -31,8 +31,8 @@ return {
           },
           {
             elements = {
-              { id = "repl", size = 0.4 },
-              { id = "scopes", size = 0.6 },
+              { id = "watches", size = 0.5 },
+              { id = "scopes", size = 0.5 },
             },
             size = 10,
             position = "bottom",
@@ -52,6 +52,14 @@ return {
       end
 
       -- Add custom headless attach config
+      table.insert(unique_configs, 1, {
+        name = "Attach To Headless (127.0.0.1:2346)",
+        type = "go",
+        request = "attach",
+        mode = "remote",
+        host = "127.0.0.1",
+        port = 2346,
+      })
       table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2345)",
         type = "go",
