@@ -9,16 +9,22 @@ linters-settings:
 
   gocyclo:
     min-complexity: 15
-  mnd:
-    # don't include the "operation" and "assign"
-    # checks: argument,case,condition,return
+
+  gomnd:
+    settings:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+
   gosec:
     severity: medium
-    excludes:
-      - G115
+    exclude-rules:
+      - id: G115
+
   govet:
-    enable:
-      - shadow
+    check-shadowing: true
     settings:
       printf:
         funcs:
@@ -26,21 +32,26 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
   gci:
-    custom-order: true # enable sections-based sorting
-    sections:
-      - standard # stdlib
-      - default # other
-      - prefix(github.com/runZeroInc) # us, case sensitive
+    section-separator: "\n"
     skip-generated: true
+    custom-order: true
+    sections:
+      - Standard
+      - Default
+      - Prefix(github.com/runZeroInc)
+
   lll:
     line-length: 250
+
   misspell:
     locale: US
+
   nolintlint:
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+    allow-unused: false
+    require-explanation: false
+    require-specific: false
 
   revive:
     rules:
@@ -52,52 +63,39 @@ linters-settings:
         disabled: true
 
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
+    - asciicheck
+    - bodyclose
     - gosec
     - govet
-    - bodyclose
-    - typecheck
-    - unconvert
     - goprintffuncname
     - ineffassign
     - noctx
-    - asciicheck
-    - rowserrcheck
     - revive
-      # Deliberately not enabled:
-      # - gci # is a more configurable import sorter than gofumpt
-      # - nakedret # Disabled for now
-      # - prealloc # Disabled for now
-      # - nolintlint # Disabled for now
-      # - unused # Crashes on netip package
-      # - gofmt # Crashes on mapcidr/cidr.go
-      # - goimports # Crashes on tcp_checkmk.go timestamp strings
-      # - gosimple # Crashes on netip package
-      # - staticcheck # Triggers OOM and takes forever to run
+    - rowserrcheck
+    - typecheck
+    - unconvert
 
 issues:
   include:
     - EXC0008
-  # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
       linters:
         - gomnd
+
     - path: ".*"
       text: "should have a package comment"
 
-    # https://github.com/go-critic/go-critic/issues/926
     - linters:
         - gocritic
       text: "unnecessaryDefer:"
 
     - path: buffalo/
-      text: "G307:"
       linters:
         - gosec
+      text: "G307:"
 
     - path: buffalo/fizz/translators
       linters:
@@ -107,15 +105,11 @@ issues:
       linters:
         - gci
 
-    # govet's shadow check can be useful, but redeclaring err and ctx is common. Annoying to work around linter.
-    - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
-      linters: [govet]
+    - linters: [govet]
+      text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
 
-  exclude:
-
-# golangci.com configuration
-# https://github.com/golangci/golangci/wiki/Configuration
-service:
-#  golangci-lint-version: 1.23.x # use the fixed version to not introduce new linters unexpectedly
-#  prepare:
-#    - echo "here I can run custom commands, but no preparation needed for this repo"
+run:
+  timeout: 5m
+  skip-dirs:
+    - vendor
+    - vendor-patched
