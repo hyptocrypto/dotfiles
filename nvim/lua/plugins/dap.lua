@@ -53,6 +53,14 @@ return {
 
       -- Add custom headless attach config
       table.insert(unique_configs, 1, {
+        name = "Attach To Headless (127.0.0.1:2346)",
+        type = "go",
+        request = "attach",
+        mode = "remote",
+        host = "127.0.0.1",
+        port = 2346,
+      })
+      table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2345)",
         type = "go",
         request = "attach",

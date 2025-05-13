@@ -6,6 +6,11 @@ return {
       pgsql = { "sqlfluff" },
       go = { "gopls", "gofmt", "goimports" },
       html = { "djlint" },
+      vue = { "eslint" },
+      javascript = { "eslint" },
+      javascriptreact = { "eslint" },
+      typescript = { "eslint" },
+      typescriptreact = { "eslint" },
     },
     formatters = {
       sqlfluff = {
