@@ -12,10 +12,26 @@ return {
     -- picker
     local function generate_harpoon_picker()
       local file_paths = {}
-      for _, item in ipairs(harpoon:list().items) do
+      for i, item in ipairs(harpoon:list().items) do
+        local abs_path = vim.fn.fnamemodify(item.value, ":p")
+        local lnum = item.context.row + 1
+        local col = item.context.col
+        local line = ""
+
+        -- Read the preview line from the file (if readable)
+        if vim.fn.filereadable(abs_path) == 1 then
+          local lines = vim.fn.readfile(abs_path)
+          line = lines[lnum] or ""
+        end
+
         table.insert(file_paths, {
-          text = item.value,
-          file = item.value,
+          text = string.format("%d. %s %s", i, abs_path, line),
+          file = abs_path,
+          line = line,
+          pos = { lnum, col },
+          preview = {
+            loc = true,
+          },
         })
       end
       return file_paths
