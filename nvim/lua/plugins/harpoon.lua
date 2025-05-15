@@ -20,7 +20,7 @@ return {
           local file_paths = {}
           for i, item in ipairs(harpoon:list().items) do
             local abs_path = vim.fn.fnamemodify(item.value, ":p")
-            local lnum = item.context.row + 1
+            local lnum = item.context.row
             local col = item.context.col
             local line = ""
 
