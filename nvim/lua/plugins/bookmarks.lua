@@ -37,7 +37,7 @@ return {
       desc = "Bookmark: Clean current buffer",
     },
     {
-      "<leader>hl",
+      "<leader>hh",
       function()
         local bookmarks = require("bookmarks")
         local file = vim.fn.expand("$HOME/.bookmarks")
