@@ -3,19 +3,11 @@ return {
   opts = {
     servers = {
       golangci_lint_ls = {
-        cmd = { "golangci-lint-langserver" },
+        cmd = {
+          "golangci-lint-langserver",
+        },
         filetypes = { "go", "gomod" },
         root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
-        init_options = {
-          command = {
-            "golangci-lint",
-            "run",
-            "--config",
-            "/Users/julianbaumgartner/.config/nvim/extra/.golangci.yml",
-            "--out-format",
-            "json",
-          },
-        },
       },
       -- Volar for Vue files
       volar = {
@@ -108,8 +100,6 @@ return {
               fieldalignment = true,
               shadow = false,
               unusedvariable = true,
-              ST1000 = false, -- style checks
-              ST1005 = false,
               unusedresult = true,
               unreachable = true,
               loopclosure = true,
@@ -125,7 +115,6 @@ return {
             },
             usePlaceholders = true,
             completeUnimported = true,
-            staticcheck = true,
             directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules", "-vendor-patched" },
             semanticTokens = true,
           },
