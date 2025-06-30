@@ -147,6 +147,16 @@ return {
           desc = "Toggle Breakpoint",
         },
         {
+          "<Leader>dB",
+          function()
+            local condition = vim.fn.input("Breakpoint condition: ")
+            if condition ~= "" then
+              require("dap").set_breakpoint(condition)
+            end
+          end,
+          desc = "Set Conditional Breakpoint",
+        },
+        {
           "<Leader>df",
           function()
             dap.focus_frame()
