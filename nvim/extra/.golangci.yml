@@ -1,115 +1,46 @@
-linters-settings:
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-
-  gocyclo:
-    min-complexity: 15
-
-  gomnd:
-    settings:
-      checks:
-        - argument
-        - case
-        - condition
-        - return
-
-  gosec:
-    severity: medium
-    exclude-rules:
-      - id: G115
-
-  govet:
-    check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-
-  gci:
-    section-separator: "\n"
-    skip-generated: true
-    custom-order: true
-    sections:
-      - Standard
-      - Default
-      - Prefix(github.com/runZeroInc)
-
-  lll:
-    line-length: 250
-
-  misspell:
-    locale: US
-
-  nolintlint:
-    allow-unused: false
-    require-explanation: false
-    require-specific: false
-
-  revive:
-    rules:
-      - name: unused-parameter
-        disabled: true
-      - name: unused-receiver
-        disabled: true
-      - name: package-comments
-        disabled: true
-
+version: "2"
 linters:
-  disable-all: true
+  default: all
   enable:
-    - asciicheck
-    - bodyclose
-    - gosec
+    - errcheck
+    - staticcheck
     - govet
-    - goprintffuncname
-    - ineffassign
-    - noctx
-    - revive
-    - rowserrcheck
-    - typecheck
-    - unconvert
-
-issues:
-  include:
-    - EXC0008
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-
-    - path: ".*"
-      text: "should have a package comment"
-
-    - linters:
-        - gocritic
-      text: "unnecessaryDefer:"
-
-    - path: buffalo/
-      linters:
-        - gosec
-      text: "G307:"
-
-    - path: buffalo/fizz/translators
-      linters:
-        - gosec
-
-    - path: vendor-patched/
-      linters:
-        - gci
-
-    - linters: [govet]
-      text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
-
+    - bodyclose
 run:
+  relative-path-mode: cfg
+  # Limits how many goroutines to use; defaults to num CPUs
+  concurrency: 8
+  # Stop lint if it's stalled—prevents hangs in large repos
   timeout: 5m
-  skip-dirs:
-    - vendor
-    - vendor-patched
+issues:
+  # Skip linting generated files
+  exclude-generated: true
+linters-settings:
+  cyclop:
+    max-complexity: 15
+    package-average: 1.0
+  gocognit:
+    min-complexity: 15
+  dupl:
+    threshold: 120
+  funlen:
+    lines: 200
+    statements: 100
+  prealloc:
+    simple: true
+    range-loops: false
+    for-loops: true
+  errcheck:
+    check-type-assertions: true
+  gocritic:
+    enabled-checks: ["all"]
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - your/module/path
+    gofmt:
+      simplify: true

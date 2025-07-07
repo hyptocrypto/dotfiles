@@ -72,7 +72,7 @@ return {
                 idx = idx,
                 text = string.format("%d. %s:%d %s", idx, abs_path, line_num + 1, line_text),
                 file = abs_path,
-                pos = { line_num + 1, 0 },
+                pos = { line_num, 0 },
                 preview = {
                   loc = true,
                 },

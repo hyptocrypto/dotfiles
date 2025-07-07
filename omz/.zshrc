@@ -369,7 +369,7 @@ alias lt='lsd --all --long --header --inode --git --tree --level=3'
 alias runserv='python manage.py runserver'
 alias ddshell='python manage.py shell_plus --print-sql --ipython'
 alias dshell='python manage.py shell -i ipython'
-alias c='clear && stty sane'
+alias c='stty sane && clear'
 alias gitclear='git stash && git stash clear'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

@@ -29,6 +29,14 @@ return {
             size = 30,
             position = "left",
           },
+
+          {
+            elements = {
+              { id = "repl", size = 1 },
+            },
+            size = 5,
+            position = "bottom",
+          },
           {
             elements = {
               { id = "watches", size = 0.5 },
@@ -39,7 +47,6 @@ return {
           },
         },
       })
-
       -- Clean up duplicate configs
       local unique_configs = {}
       local seen = {}
