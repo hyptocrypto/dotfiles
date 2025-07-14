@@ -147,7 +147,7 @@ local function run_nearest_go_test()
 
   -- Extract the name of the test function
   local line = vim.fn.getline(test_name)
-  local test_func = line:match("^func%s+(Test[%w_]*)")
+  local test_func = line:match("^func%s+(Test%w+)")
   if not test_func then
     vim.notify("Failed to parse test function name", vim.log.levels.ERROR, { title = "Go Test" })
     return

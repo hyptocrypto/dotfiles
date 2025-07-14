@@ -1,16 +1,10 @@
 return {
   "stevearc/conform.nvim",
   opts = {
-    opts = {
-      default_format_opts = {
-        lsp_format = "fallback",
-        timeout_ms = 10000,
-      },
-    },
     formatters_by_ft = {
       sql = { "sqlfluff" },
       pgsql = { "sqlfluff" },
-      go = { "goimports", "gofmt", "gopls" },
+      go = { "gofmt", "goimports" },
       html = { "djlint" },
       vue = { "eslint" },
       javascript = { "eslint" },
@@ -18,8 +12,15 @@ return {
       typescript = { "eslint" },
       typescriptreact = { "eslint" },
     },
-
     formatters = {
+      eslint = {
+        command = "yarn",
+        args = { "eslint", "--fix", "--stdin", "--stdin-filename", "$FILENAME" },
+        stdin = true,
+        cwd = function()
+          return vim.fn.getcwd()
+        end,
+      },
       sqlfluff = {
         command = "sqlfluff",
         args = { "format", "--dialect=postgres", "-" },
