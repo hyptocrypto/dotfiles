@@ -22,13 +22,11 @@ config.harfbuzz_features = {
 	"calt=0", -- Disables contextual alternates
 }
 config.keys = {
-	-- Move to the next tab
 	{
 		key = "Escape",
 		mods = "SHIFT",
 		action = wezterm.action.ActivateTabRelative(1),
 	},
-	-- Create a new pane
 	{
 		key = "d",
 		mods = "SUPER|SHIFT", -- Cmd+Shift+D (Mac) / Win+Shift+D (Windows) splits horizontally
@@ -40,7 +38,6 @@ config.keys = {
 		action = wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }),
 	},
 
-	-- Add these key bindings to your config.keys table
 	{
 		key = "h",
 		mods = "CTRL|SHIFT",
