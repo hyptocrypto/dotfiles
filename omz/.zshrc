@@ -272,59 +272,21 @@ extend-ignore = [\"E501\"]  # Ignore line length errors
 fix = true" >> pyproject.toml
 }
 
-function makeenv38() {
-        PY_INFO=$(brew info python@3.8)
-        PYTHON=$(less "$PY_INFO"| grep -A1 'Python has been installed' | grep '/' | xargs)
-        if [ -z "$PYTHON" ]
-        then
-            echo "Python3.8 not installed"
-                return 1
-        fi
-        virtualenv -p $PYTHON venv &&
-        source venv/bin/activate &&
-        pip install ipython black isort flake8 autoflake
-}
-
-function _open_nvim_shell() {
-        local folder_path="${1:-$(pwd)}"
-
-        osascript -e 'tell application "iTerm2"
-            tell current window
-                create tab with default profile
-                tell current session of current tab
-                    write text "cd '"$folder_path"' && startenv && nvim ."
-                end tell
-            end tell
-        end tell'
-}
-
-function workon() {
-        if [ $# -eq 0 ]; then
-            startenv && _open_nvim_shell
-        else
-            cd "$1" && startenv && _open_nvim_shell "$1"
-        fi
-}
 
 function syncdot() {
         curr_dir=$(pwd)
         
         cd ~/dev/dotfiles
+	git checkout main
         git pull
 
         cp omz/.zshrc ~/.zshrc
         rm -r  ~/.config/nvim
         cp -r nvim ~/.config/
+	cp .wezterm.lua ~/.wezterm.lua
         source ~/.zshrc
 
         cd "$curr_dir"
-}
-
-
-function cleancode () {
-        flake8 . &&
-        isort . &&
-        black . &&
 }
 
 function mkgitdir (){
@@ -340,9 +302,6 @@ function mkcd (){
         cd -P "$1"
 }
 
-function sleeptime (){
-        sudo shutdown -s now
-}
 
 function gitcom () {
         git add . &&
