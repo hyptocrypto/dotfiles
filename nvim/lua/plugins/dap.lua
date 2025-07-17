@@ -57,7 +57,6 @@ return {
           seen[config.name] = true
         end
       end
-
       -- Add custom headless attach config
       table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2346)",
@@ -145,6 +144,16 @@ return {
             dap.toggle_breakpoint()
           end,
           desc = "Toggle Breakpoint",
+        },
+        "<Leader>dB",
+        {
+          function()
+            local condition = vim.fn.input("Breakpoint condition: ")
+            if condition ~= "" then
+              require("dap").set_breakpoint(condition)
+            end
+          end,
+          desc = "Set Conditional Breakpoint",
         },
         {
           "<Leader>df",

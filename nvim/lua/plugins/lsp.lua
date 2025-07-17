@@ -39,7 +39,7 @@ return {
       eslint = {
         settings = {
           validate = "on",
-          packageManager = "npm",
+          packageManager = "yarn",
           format = true,
           workingDirectory = { mode = "auto" },
         },
