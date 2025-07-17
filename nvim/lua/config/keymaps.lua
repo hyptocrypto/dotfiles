@@ -264,3 +264,9 @@ vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
+
+-- Shift+H to fold under cursor
+vim.api.nvim_set_keymap("n", "H", "zc", { noremap = true, silent = true })
+
+-- Shift+L to unfold under cursor
+vim.api.nvim_set_keymap("n", "L", "zo", { noremap = true, silent = true })
