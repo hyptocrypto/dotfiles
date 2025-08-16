@@ -145,8 +145,8 @@ return {
           end,
           desc = "Toggle Breakpoint",
         },
-        "<Leader>dB",
         {
+          "<Leader>dB",
           function()
             local condition = vim.fn.input("Breakpoint condition: ")
             if condition ~= "" then

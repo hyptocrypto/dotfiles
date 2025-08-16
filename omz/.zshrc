@@ -330,6 +330,7 @@ alias ddshell='python manage.py shell_plus --print-sql --ipython'
 alias dshell='python manage.py shell -i ipython'
 alias c='stty sane && clear'
 alias gitclear='git stash && git stash clear'
+alias gcoo='git switch $(git branch --all | sed 's/^..//' | fzf)'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
