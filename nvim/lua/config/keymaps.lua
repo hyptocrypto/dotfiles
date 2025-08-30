@@ -54,35 +54,35 @@ end
 vim.keymap.set("n", "<leader>t", ToggleNeoTreeOrCode, { desc = "Toggle between Neo-tree and code file" })
 
 -- Simplify changing variable names
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>cn",
-  ":let @/='\\<'.expand('<cword>').'\\>'<CR>cgn",
-  { noremap = true, silent = true }
-)
+vim.keymap.set("n", "<leader>cn", ":let @/='\\<'.expand('<cword>').'\\>'<CR>cgn", { desc = "Change variable name" })
 
-vim.keymap.set("n", "D", "10jzz", { noremap = true, silent = true })
-vim.keymap.set("n", "U", "10kzz", { noremap = true, silent = true })
+vim.keymap.set("n", "D", "10jzz", { desc = "Move down 10 lines and center" })
+vim.keymap.set("n", "U", "10kzz", { desc = "Move up 10 lines and center" })
 
 -- Make backspace behave and wrap on newlines
 vim.opt.backspace = { "eol", "start", "indent" }
 vim.opt.whichwrap:append("<,>,h,l")
 
 -- Map Tab to indent in normal, visual, and select modes
-vim.api.nvim_set_keymap("n", "<Tab>", ">>", { noremap = true })
-vim.api.nvim_set_keymap("v", "<Tab>", ">gv", { noremap = true })
-vim.api.nvim_set_keymap("s", "<Tab>", ">", { noremap = true })
+vim.keymap.set("n", "<Tab>", ">>", { desc = "Indent line" })
+vim.keymap.set("v", "<Tab>", ">gv", { desc = "Indent selection" })
+vim.keymap.set("s", "<Tab>", ">", { desc = "Indent selection" })
 
 -- Map Shift+Tab to unindent in normal, visual, and select modes
-vim.api.nvim_set_keymap("n", "<S-Tab>", "<<", { noremap = true })
-vim.api.nvim_set_keymap("v", "<S-Tab>", "<gv", { noremap = true })
-vim.api.nvim_set_keymap("s", "<S-Tab>", "<", { noremap = true })
+vim.keymap.set("n", "<S-Tab>", "<<", { desc = "Unindent line" })
+vim.keymap.set("v", "<S-Tab>", "<gv", { desc = "Unindent selection" })
+vim.keymap.set("s", "<S-Tab>", "<", { desc = "Unindent selection" })
 
--- Personal
-vim.api.nvim_set_keymap("i", "jk", "<Esc>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "r", "<C-r>", { noremap = true, silent = true })
---- Dont copy to reg when pasting
-vim.api.nvim_set_keymap("v", "p", '"_dP', { noremap = true, silent = true })
+-- Personal keymaps
+vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
+vim.keymap.set("n", "r", "<C-r>", { desc = "Redo" })
+
+-- Delete operations that don't overwrite clipboard
+vim.keymap.set("n", "dd", '"_dd', { desc = "Delete line without copying" })
+
+-- Keep normal paste behavior (don't override p/P)
+-- Only override visual mode paste to not copy when pasting over selection
+vim.keymap.set("v", "p", '"_dP', { desc = "Paste without copying selection" })
 
 function Insert_iferr()
   local lines = {
@@ -93,7 +93,7 @@ function Insert_iferr()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0)) -- Get the current cursor position
   vim.api.nvim_buf_set_lines(0, row, row, false, lines) -- Insert the lines below the cursor
 end
-vim.api.nvim_set_keymap("c", "ifer", ":lua Insert_iferr()<CR>", { noremap = true, silent = true })
+vim.keymap.set("c", "ifer", ":lua Insert_iferr()<CR>", { desc = "Insert Go error handling" })
 
 function ToggleBreakpoint()
   local filetype = vim.bo.filetype
@@ -256,7 +256,7 @@ local function debug_pytest()
 end
 
 -- Create a command to trigger the function
-vim.api.nvim_set_keymap("c", "bb", ":lua ToggleBreakpoint()<CR>:<Esc>", { noremap = true, silent = true })
+vim.keymap.set("c", "bb", ":lua ToggleBreakpoint()<CR>:<Esc>", { desc = "Toggle breakpoint" })
 
 vim.api.nvim_create_user_command("Pytest", run_nearest_pytest, {})
 vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
@@ -266,7 +266,7 @@ vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
 
 -- Shift+H to fold under cursor
-vim.api.nvim_set_keymap("n", "H", "zc", { noremap = true, silent = true })
+vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
 
 -- Shift+L to unfold under cursor
-vim.api.nvim_set_keymap("n", "L", "zo", { noremap = true, silent = true })
+vim.keymap.set("n", "L", "zo", { desc = "Unfold under cursor" })

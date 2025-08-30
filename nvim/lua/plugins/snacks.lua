@@ -5,9 +5,11 @@ return {
       {
         "<leader><space>",
         function()
-          Snacks.picker.smart()
+          -- Find files in current project only
+          local root = require("lazyvim.util").root()
+          Snacks.picker.files({ cwd = root })
         end,
-        desc = "Smart Find Files",
+        desc = "Find Files (Project)",
       },
       {
         "<leader>,",
@@ -19,9 +21,11 @@ return {
       {
         "<leader>/",
         function()
-          Snacks.picker.grep()
+          -- Grep in current project only
+          local root = require("lazyvim.util").root()
+          Snacks.picker.grep({ cwd = root })
         end,
-        desc = "Grep",
+        desc = "Grep (Project)",
       },
       {
         "<leader>:",
@@ -60,6 +64,54 @@ return {
           --   filename_first = true, -- display filename before the file path
           --   truncate = 80,
           -- },
+        },
+        -- Project-specific settings
+        files = {
+          follow_symlinks = false,
+          show_hidden = true,
+          ignore_patterns = {
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/vendor/**",
+            "**/__pycache__/**",
+            "**/.pytest_cache/**",
+            "**/target/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/.nuxt/**",
+            "**/coverage/**",
+            "**/.nyc_output/**",
+            "**/.cache/**",
+            "**/tmp/**",
+            "**/temp/**",
+            -- Keep system dotfiles hidden but allow project dotfiles
+            "**/.DS_Store",
+            "**/Thumbs.db",
+          },
+        },
+        grep = {
+          show_hidden = true,
+          ignore_patterns = {
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/vendor/**",
+            "**/__pycache__/**",
+            "**/.pytest_cache/**",
+            "**/target/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/.nuxt/**",
+            "**/coverage/**",
+            "**/.nyc_output/**",
+            "**/.cache/**",
+            "**/tmp/**",
+            "**/temp/**",
+            -- Keep system dotfiles hidden but allow project dotfiles
+            "**/.DS_Store",
+            "**/Thumbs.db",
+          },
         },
       },
       image = {

@@ -28,3 +28,21 @@ vim.g.lazyvim_picker = "snacks"
 -- Spelling
 vim.opt.spell = true
 vim.opt.spelllang = { "en" }
+
+-- Performance optimizations for large files
+vim.opt.updatetime = 250 -- Faster completion
+vim.opt.timeoutlen = 300 -- Faster key sequence timeout
+vim.opt.redrawtime = 1500 -- Allow more time for redrawing
+
+-- Better scrolling performance
+vim.opt.smoothscroll = true
+vim.opt.scrolloff = 8 -- Keep 8 lines visible when scrolling
+
+-- Optimize for large files
+vim.opt.synmaxcol = 240 -- Don't highlight long lines
+
+-- Better search performance
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.hlsearch = true
+vim.opt.incsearch = true

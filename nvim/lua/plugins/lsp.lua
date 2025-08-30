@@ -1,6 +1,22 @@
 return {
   "neovim/nvim-lspconfig",
+  event = "VeryLazy",
   opts = {
+    -- Performance optimizations
+    capabilities = {
+      textDocument = {
+        completion = {
+          completionItem = {
+            snippetSupport = true,
+            resolveSupport = {
+              properties = { "documentation", "detail", "additionalTextEdits" },
+            },
+          },
+        },
+      },
+    },
+    -- Faster LSP startup
+    single_file_support = true,
     servers = {
       golangci_lint_ls = {
         cmd = {
@@ -44,10 +60,7 @@ return {
           workingDirectory = { mode = "auto" },
         },
       },
-      -- TypeScript & JavaScript LSP
-      tsserver = {
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-      },
+
 
       -- JSON Language Server
       jsonls = {},
@@ -69,20 +82,20 @@ return {
       -- Python LSP
       pyright = {},
 
-      -- Go LSP with Advanced Config
+      -- Go LSP with Optimized Config
       gopls = {
         settings = {
           gopls = {
             gofumpt = true,
             codelenses = {
-              gc_details = true,
+              gc_details = false,
               generate = true,
               regenerate_cgo = true,
-              run_govulncheck = true,
+              run_govulncheck = false,
               test = true,
               tidy = true,
-              upgrade_dependency = true,
-              vendor = true,
+              upgrade_dependency = false,
+              vendor = false,
             },
             hints = {
               assignVariableTypes = false,
@@ -97,7 +110,7 @@ return {
               nilness = true,
               unusedparams = true,
               unusedwrite = true,
-              fieldalignment = true,
+              fieldalignment = false,
               shadow = false,
               unusedvariable = true,
               unusedresult = true,
@@ -107,16 +120,18 @@ return {
               printf = true,
               ifaceassert = true,
               stringintconv = true,
-              atomicalign = true,
+              atomicalign = false,
               undeclaredname = true,
               fillreturns = true,
               nonewvars = true,
-              stacktrace = true,
+              stacktrace = false,
             },
             usePlaceholders = true,
             completeUnimported = true,
-            directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules", "-vendor-patched" },
+            directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules", "-vendor-patched", "-testdata" },
             semanticTokens = true,
+            staticcheck = true,
+            experimentalPostfixCompletions = true,
           },
         },
       },
