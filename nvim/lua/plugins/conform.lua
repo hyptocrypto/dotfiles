@@ -38,21 +38,6 @@ return {
         end,
       },
     },
-    -- Prefer ESLint over LSP for JS/TS/Vue formatting
-    format_on_save = function(bufnr)
-      local filetype = vim.bo[bufnr].filetype
-      local eslint_filetypes = {
-        javascript = true,
-        javascriptreact = true,
-        typescript = true,
-        typescriptreact = true,
-        vue = true,
-      }
-      if eslint_filetypes[filetype] then
-        return { lsp_fallback = false, timeout_ms = 10000 }
-      end
-      return { lsp_fallback = true, timeout_ms = 10000 }
-    end,
     notify_on_error = true,
   },
 }

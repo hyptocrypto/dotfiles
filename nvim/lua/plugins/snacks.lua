@@ -1,3 +1,28 @@
+-- Always grep from repository root
+local function project_root()
+  local buf = vim.api.nvim_buf_get_name(0)
+  local start = (buf ~= "" and vim.fs.dirname(buf)) or vim.loop.cwd()
+  if vim.system then
+    local res = vim.system({ "git", "-C", start, "rev-parse", "--show-toplevel" }, { text = true }):wait()
+    if res.code == 0 then
+      local path = (res.stdout or ""):gsub("%s+$", "")
+      if path ~= "" then
+        return path
+      end
+    end
+  else
+    local out = vim.fn.system({ "git", "-C", start, "rev-parse", "--show-toplevel" })
+    if vim.v.shell_error == 0 and type(out) == "string" and out ~= "" then
+      return out:gsub("%s+$", "")
+    end
+  end
+  local ok, util = pcall(require, "lazyvim.util")
+  if ok then
+    return util.root()
+  end
+  return vim.loop.cwd()
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -5,9 +30,7 @@ return {
       {
         "<leader><space>",
         function()
-          -- Find files in current project only
-          local root = require("lazyvim.util").root()
-          Snacks.picker.files({ cwd = root })
+          Snacks.picker.files()
         end,
         desc = "Find Files (Project)",
       },
@@ -21,9 +44,7 @@ return {
       {
         "<leader>/",
         function()
-          -- Grep in current project only
-          local root = require("lazyvim.util").root()
-          Snacks.picker.grep({ cwd = root })
+          Snacks.picker.grep()
         end,
         desc = "Grep (Project)",
       },
@@ -45,6 +66,11 @@ return {
 
     opts = {
       picker = {
+        defaults = {
+          cwd = project_root,
+          hidden = true,
+          ignored = true,
+        },
         win = {
           input = {
             keys = {
@@ -65,15 +91,11 @@ return {
           --   truncate = 80,
           -- },
         },
-        -- Ensure grep & files always search from project root and include hidden & ignored files
         sources = {
           grep = {
             hidden = true,
             ignored = true,
-            -- extra ripgrep args to include absolutely everything
-            -- be explicit to avoid env-specific rg defaults
             args = { "--hidden", "--no-ignore", "--no-ignore-global", "--no-ignore-parent" },
-            -- keep some heavy/system paths excluded to avoid noise
             exclude = {
               "**/node_modules/**",
               "**/vendor/**",
@@ -92,21 +114,10 @@ return {
               "**/.DS_Store",
               "**/Thumbs.db",
             },
-            -- dynamically set cwd to project root for every grep invocation
-            config = function(o)
-              local ok, util = pcall(require, "lazyvim.util")
-              if ok then
-                o.cwd = util.root()
-              else
-                o.cwd = o.cwd or vim.fn.getcwd()
-              end
-              return o
-            end,
           },
           files = {
             hidden = true,
             ignored = true,
-            -- do not set args so this works with both fd and rg
             exclude = {
               "**/node_modules/**",
               "**/.git/**",
@@ -126,16 +137,6 @@ return {
               "**/.DS_Store",
               "**/Thumbs.db",
             },
-            -- dynamically set cwd to project root for every files invocation
-            config = function(o)
-              local ok, util = pcall(require, "lazyvim.util")
-              if ok then
-                o.cwd = util.root()
-              else
-                o.cwd = o.cwd or vim.fn.getcwd()
-              end
-              return o
-            end,
           },
         },
       },

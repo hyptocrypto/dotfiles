@@ -129,6 +129,18 @@ return {
       -- Markdown / docs
       marksman = {},
 
+      -- Grammar and spell checking for prose
+      ltex = {
+        filetypes = { "markdown", "text", "gitcommit", "latex" },
+        settings = {
+          ltex = {
+            language = "en-US",
+            -- Run checks on save to keep things snappy while typing
+            checkFrequency = "save",
+          },
+        },
+      },
+
       -- YAML
       yamlls = {},
 
