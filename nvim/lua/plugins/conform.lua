@@ -1,34 +1,58 @@
 return {
   "stevearc/conform.nvim",
   opts = {
+    -- Ensure we use ESLint for JS/TS/Vue and sqlfluff for SQL
     formatters_by_ft = {
-      sql = { "sqlfluff" },
-      pgsql = { "sqlfluff" },
+      sql = { "sqlfluff_format" },
+      pgsql = { "sqlfluff_format" },
       go = { "gofmt", "goimports" },
       html = { "djlint" },
-      vue = { "eslint" },
-      javascript = { "eslint" },
-      javascriptreact = { "eslint" },
-      typescript = { "eslint" },
-      typescriptreact = { "eslint" },
+      vue = { "eslint_d_fix" },
+      javascript = { "eslint_d_fix" },
+      javascriptreact = { "eslint_d_fix" },
+      typescript = { "eslint_d_fix" },
+      typescriptreact = { "eslint_d_fix" },
     },
     formatters = {
-      eslint = {
-        command = "yarn",
-        args = { "eslint", "--fix", "--stdin", "--stdin-filename", "$FILENAME" },
-        stdin = true,
+      eslint_d_fix = {
+        inherit = false,
+        command = "eslint_d",
+        -- Run on a temp file so ESLint v9 can --fix the file
+        args = { "--fix", "--quiet", "$FILENAME" },
+        stdin = false,
+        tempfile_dir = ".",
+        exit_codes = { 0, 1 }, -- 1 can mean warnings
         cwd = function()
           return vim.fn.getcwd()
         end,
       },
-      sqlfluff = {
+      sqlfluff_format = {
+        inherit = false, -- do not merge with builtin 'sqlfluff'
         command = "sqlfluff",
         args = { "format", "--dialect=postgres", "-" },
         stdin = true,
+        -- Treat exit code 1 (violations) as non-fatal so Conform doesn't error
+        exit_codes = { 0, 1 },
         cwd = function()
           return vim.fn.getcwd()
         end,
       },
     },
+    -- Prefer ESLint over LSP for JS/TS/Vue formatting
+    format_on_save = function(bufnr)
+      local filetype = vim.bo[bufnr].filetype
+      local eslint_filetypes = {
+        javascript = true,
+        javascriptreact = true,
+        typescript = true,
+        typescriptreact = true,
+        vue = true,
+      }
+      if eslint_filetypes[filetype] then
+        return { lsp_fallback = false, timeout_ms = 10000 }
+      end
+      return { lsp_fallback = true, timeout_ms = 10000 }
+    end,
+    notify_on_error = true,
   },
 }

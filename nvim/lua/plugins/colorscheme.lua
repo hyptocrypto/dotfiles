@@ -1,4 +1,4 @@
-T = {
+return {
   "projekt0n/github-nvim-theme",
   name = "github-theme",
   lazy = false, -- make sure we load this during startup if it is your main colorscheme
@@ -11,12 +11,12 @@ T = {
     vim.cmd("colorscheme github_dark")
   end,
 }
-return {
-  { "rmehri01/onenord.nvim" },
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "onenord",
-    },
-  },
-}
+-- return {
+--   { "rmehri01/onenord.nvim" },
+--   {
+--     "LazyVim/LazyVim",
+--     opts = {
+--       colorscheme = "onenord",
+--     },
+--   },
+-- }

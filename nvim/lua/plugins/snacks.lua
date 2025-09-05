@@ -65,52 +65,77 @@ return {
           --   truncate = 80,
           -- },
         },
-        -- Project-specific settings
-        files = {
-          follow_symlinks = false,
-          show_hidden = true,
-          ignore_patterns = {
-            "**/node_modules/**",
-            "**/.git/**",
-            "**/vendor/**",
-            "**/__pycache__/**",
-            "**/.pytest_cache/**",
-            "**/target/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/.next/**",
-            "**/.nuxt/**",
-            "**/coverage/**",
-            "**/.nyc_output/**",
-            "**/.cache/**",
-            "**/tmp/**",
-            "**/temp/**",
-            -- Keep system dotfiles hidden but allow project dotfiles
-            "**/.DS_Store",
-            "**/Thumbs.db",
+        -- Ensure grep & files always search from project root and include hidden & ignored files
+        sources = {
+          grep = {
+            hidden = true,
+            ignored = true,
+            -- extra ripgrep args to include absolutely everything
+            -- be explicit to avoid env-specific rg defaults
+            args = { "--hidden", "--no-ignore", "--no-ignore-global", "--no-ignore-parent" },
+            -- keep some heavy/system paths excluded to avoid noise
+            exclude = {
+              "**/node_modules/**",
+              "**/vendor/**",
+              "**/__pycache__/**",
+              "**/.pytest_cache/**",
+              "**/target/**",
+              "**/dist/**",
+              "**/build/**",
+              "**/.next/**",
+              "**/.nuxt/**",
+              "**/coverage/**",
+              "**/.nyc_output/**",
+              "**/.cache/**",
+              "**/tmp/**",
+              "**/temp/**",
+              "**/.DS_Store",
+              "**/Thumbs.db",
+            },
+            -- dynamically set cwd to project root for every grep invocation
+            config = function(o)
+              local ok, util = pcall(require, "lazyvim.util")
+              if ok then
+                o.cwd = util.root()
+              else
+                o.cwd = o.cwd or vim.fn.getcwd()
+              end
+              return o
+            end,
           },
-        },
-        grep = {
-          show_hidden = true,
-          ignore_patterns = {
-            "**/node_modules/**",
-            "**/.git/**",
-            "**/vendor/**",
-            "**/__pycache__/**",
-            "**/.pytest_cache/**",
-            "**/target/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/.next/**",
-            "**/.nuxt/**",
-            "**/coverage/**",
-            "**/.nyc_output/**",
-            "**/.cache/**",
-            "**/tmp/**",
-            "**/temp/**",
-            -- Keep system dotfiles hidden but allow project dotfiles
-            "**/.DS_Store",
-            "**/Thumbs.db",
+          files = {
+            hidden = true,
+            ignored = true,
+            -- do not set args so this works with both fd and rg
+            exclude = {
+              "**/node_modules/**",
+              "**/.git/**",
+              "**/vendor/**",
+              "**/__pycache__/**",
+              "**/.pytest_cache/**",
+              "**/target/**",
+              "**/dist/**",
+              "**/build/**",
+              "**/.next/**",
+              "**/.nuxt/**",
+              "**/coverage/**",
+              "**/.nyc_output/**",
+              "**/.cache/**",
+              "**/tmp/**",
+              "**/temp/**",
+              "**/.DS_Store",
+              "**/Thumbs.db",
+            },
+            -- dynamically set cwd to project root for every files invocation
+            config = function(o)
+              local ok, util = pcall(require, "lazyvim.util")
+              if ok then
+                o.cwd = util.root()
+              else
+                o.cwd = o.cwd or vim.fn.getcwd()
+              end
+              return o
+            end,
           },
         },
       },
