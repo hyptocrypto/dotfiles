@@ -78,7 +78,7 @@ vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 vim.keymap.set("n", "r", "<C-r>", { desc = "Redo" })
 
 -- Delete operations that don't overwrite clipboard
-vim.keymap.set("n", "dd", '"_dd', { desc = "Delete line without copying" })
+-- vim.keymap.set("n", "dd", '"_dd', { desc = "Delete line without copying" })
 
 -- Keep normal paste behavior (don't override p/P)
 -- Only override visual mode paste to not copy when pasting over selection

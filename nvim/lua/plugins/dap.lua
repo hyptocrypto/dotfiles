@@ -40,8 +40,7 @@ return {
           },
           {
             elements = {
-              { id = "watches", size = 0.5 },
-              { id = "scopes", size = 0.5 },
+              { id = "watches", size = 1 },
             },
             size = 10,
             position = "bottom",
