@@ -6,7 +6,7 @@
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.templ",
   callback = function()
-    vim.lsp.buf.format({ async = false })
+    vim.lsp.buf.format({ async = true })
   end,
   desc = "Format templ files on save",
 })
@@ -43,11 +43,12 @@ vim.api.nvim_create_user_command("Golines", function()
 end, {})
 
 -- Auto-fix Python files with ruff and format on save
-vim.api.nvim_create_autocmd("BufWritePost", {
+vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.py",
   callback = function()
     -- Only run if LSP is available
     if vim.lsp.buf_is_attached(0) then
+      -- Run code actions asynchronously
       vim.lsp.buf.code_action({
         context = {
           only = {
@@ -56,8 +57,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
         },
         apply = true,
       })
-      vim.lsp.buf.format({ async = false })
     end
   end,
-  desc = "Auto-fix Python files with ruff and format on save",
+  desc = "Auto-fix Python files with ruff on save",
 })

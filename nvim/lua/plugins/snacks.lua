@@ -97,6 +97,7 @@ return {
             ignored = true,
             args = { "--hidden", "--no-ignore", "--no-ignore-global", "--no-ignore-parent" },
             exclude = {
+              "**/*.log",
               "**/node_modules/**",
               "**/vendor/**",
               "**/__pycache__/**",
@@ -119,6 +120,7 @@ return {
             hidden = true,
             ignored = true,
             exclude = {
+              "**/*.log",
               "**/node_modules/**",
               "**/.git/**",
               "**/vendor/**",

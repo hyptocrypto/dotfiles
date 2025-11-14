@@ -3,21 +3,20 @@ return {
   event = "VeryLazy",
   opts = {
     -- Performance optimizations
-    capabilities = {
-      textDocument = {
-        completion = {
-          completionItem = {
-            snippetSupport = true,
-            resolveSupport = {
-              properties = { "documentation", "detail", "additionalTextEdits" },
-            },
-          },
-        },
-      },
-    },
 
     -- Hard-disable inlay hints for JS/TS/Vue buffers on attach (Neovim 0.10+)
+    -- Also disable redundant formatting to prevent multiple formatters running on save
     on_attach = function(client, bufnr)
+      -- Hide inline diagnostics in markdown buffers (keep them for Trouble)
+      if vim.bo[bufnr].filetype == "markdown" then
+        pcall(vim.diagnostic.config, {
+          virtual_text = false,
+          virtual_lines = false,
+          signs = false,
+          underline = false,
+          update_in_insert = false,
+        }, bufnr)
+      end
       if client.name == "vtsls" or client.name == "volar" then
         pcall(function()
           if vim.lsp.inlay_hint and vim.lsp.inlay_hint.enable then
@@ -25,12 +24,39 @@ return {
           end
         end)
       end
+      
+      -- Disable formatting for ESLint (use conform.nvim instead)
+      if client.name == "eslint" then
+        client.server_capabilities.documentFormattingProvider = false
+        client.server_capabilities.documentRangeFormattingProvider = false
+      end
+      
+      -- Disable formatting for vtsls/volar (use conform.nvim/eslint_d instead)
+      if client.name == "vtsls" or client.name == "volar" then
+        client.server_capabilities.documentFormattingProvider = false
+        client.server_capabilities.documentRangeFormattingProvider = false
+      end
     end,
 
     -- Faster LSP startup
     single_file_support = true,
 
     servers = {
+      -- Default capabilities for all servers
+      ["*"] = {
+        capabilities = {
+          textDocument = {
+            completion = {
+              completionItem = {
+                snippetSupport = true,
+                resolveSupport = {
+                  properties = { "documentation", "detail", "additionalTextEdits" },
+                },
+              },
+            },
+          },
+        },
+      },
       -- Go linters (langserver)
       golangci_lint_ls = {
         cmd = { "golangci-lint-langserver" },
@@ -40,18 +66,17 @@ return {
 
       -- Vue (Volar)
       volar = {
-        filetypes = { "vue", "javascript", "typescript", "json" },
+        -- Let Volar handle only Vue SFCs; TS/JS handled by vtsls
+        filetypes = { "vue" },
         init_options = {
-          typescript = {
-            tsdk = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/typescript/lib",
-          },
-          vue = { hybridMode = false },
+          -- Use Volar hybrid mode to integrate with the TS server
+          vue = { hybridMode = true },
         },
         settings = {
           volar = {
             validation = { template = true, script = true, style = true, hover = true },
           },
-          -- Also disable TS inlay hints routed via Volar
+          -- Keep TS inlay hints disabled if routed via Volar
           typescript = {
             inlayHints = {
               enumMemberValues = { enabled = false },
@@ -88,7 +113,7 @@ return {
               variableTypes = { enabled = false },
             },
             suggest = { completeFunctionCalls = true },
-            updateImportsOnFileMove = { enabled = "always" },
+            updateImportsOnFileMove = { enabled = "prompt" },
           },
           javascript = {
             inlayHints = {
@@ -100,7 +125,7 @@ return {
               variableTypes = { enabled = false },
             },
             suggest = { completeFunctionCalls = true },
-            updateImportsOnFileMove = { enabled = "always" },
+            updateImportsOnFileMove = { enabled = "prompt" },
           },
         },
       },
@@ -135,8 +160,8 @@ return {
         settings = {
           ltex = {
             language = "en-US",
-            -- Run checks on save to keep things snappy while typing
-            checkFrequency = "save",
+            -- Run checks while editing with debounce to prevent slowdowns
+            checkFrequency = "edit",
           },
         },
       },
@@ -144,8 +169,7 @@ return {
       -- YAML
       yamlls = {},
 
-      -- Python
-      pyright = {},
+      -- Python (configured in python.lua)
 
       -- Go LSP with optimized config
       gopls = {

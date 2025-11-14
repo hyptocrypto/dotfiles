@@ -28,7 +28,8 @@ return {
         enabled = true,
         leave_dirs_open = false,
       },
-      use_libuv_file_watcher = true,
+      -- Avoid ENOENT errors from libuv when files/dirs are rapidly changing
+      use_libuv_file_watcher = false,
     },
     -- Performance settings
     enable_git_status = true,

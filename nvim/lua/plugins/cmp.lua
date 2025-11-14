@@ -1,18 +1,16 @@
+local patch = require("blink_patch")
+
 return {
   {
     "saghen/blink.cmp",
-    version = "v0.*",
     opts = function(_, opts)
-      opts.keymap = vim.tbl_deep_extend("force", opts.keymap or {}, {
-        preset = "enter",
-        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
-      })
+      opts = patch(opts)
 
-      opts.completion = vim.tbl_deep_extend("force", opts.completion or {}, {
-        list = {
-          selection = { auto_insert = true },
-        },
+      -- Make Blink own <Tab>/<S-Tab> navigation when menu is visible
+      -- Include 'fallback' so typing Tab works when menu is closed
+      opts.keymap = vim.tbl_deep_extend("force", opts.keymap or {}, {
+        ["<Tab>"] = { "select_next", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "fallback" },
       })
 
       return opts

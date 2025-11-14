@@ -1,7 +1,0 @@
-buffalo: 2025/09/15 16:01:51 === Rebuild on: :start: ===
-buffalo: 2025/09/15 16:01:51 [32m=== Running: go build -v -gcflags all=-N -l -tags development -o tmp/dotfiles-build ./cmd/app (PID: 94931) ===[0m
-buffalo: 2025/09/15 16:01:51 [31m=== Build failed: Failed: exit status 1
-[] go: cannot find main module, but found .git/config in /Users/julianbaumgartner/dev/dotfiles
-	to create a module there, run:
-	go mod init
- ===[0m

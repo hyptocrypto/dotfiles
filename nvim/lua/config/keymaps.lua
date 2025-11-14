@@ -121,19 +121,30 @@ end
 local function run_go_test_command(cmd, success_title, fail_title)
   -- Run the command in the current file's directory
   local file_dir = vim.fn.expand("%:p:h") -- Get the directory of the current file
-  local output = vim.fn.systemlist("cd " .. file_dir .. " && " .. cmd)
-  local output_str = table.concat(output, "\n")
   local timeout = 5000
 
-  if vim.v.shell_error == 0 then
-    vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
-  else
-    vim.notify(
-      "Error running go test:\n" .. output_str,
-      vim.log.levels.ERROR,
-      { title = fail_title, timeout = timeout }
-    )
-  end
+  -- Notify that the test is starting
+  vim.notify("Running: " .. cmd, vim.log.levels.INFO, { title = "Go Test", timeout = 2000 })
+
+  -- Run the command asynchronously
+  vim.system({ "sh", "-c", "cd " .. file_dir .. " && " .. cmd }, { text = true }, function(result)
+    vim.schedule(function()
+      local output_str = result.stdout or ""
+      if result.stderr and result.stderr ~= "" then
+        output_str = output_str .. "\n" .. result.stderr
+      end
+
+      if result.code == 0 then
+        vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
+      else
+        vim.notify(
+          "Error running go test:\n" .. output_str,
+          vim.log.levels.ERROR,
+          { title = fail_title, timeout = timeout }
+        )
+      end
+    end)
+  end)
 end
 
 -- Function to run the nearest Go test under the cursor

@@ -1,6 +1,7 @@
 return {
   "stevearc/conform.nvim",
   opts = {
+    -- LazyVim handles format_on_save automatically, don't set it here
     -- Ensure we use ESLint for JS/TS/Vue and sqlfluff for SQL
     formatters_by_ft = {
       sql = { "sqlfluff_format" },
@@ -17,10 +18,8 @@ return {
       eslint_d_fix = {
         inherit = false,
         command = "eslint_d",
-        -- Run on a temp file so ESLint v9 can --fix the file
-        args = { "--fix", "--quiet", "$FILENAME" },
-        stdin = false,
-        tempfile_dir = ".",
+        args = { "--fix-to-stdout", "--stdin", "--stdin-filename", "$FILENAME" },
+        stdin = true,
         exit_codes = { 0, 1 }, -- 1 can mean warnings
         cwd = function()
           return vim.fn.getcwd()
