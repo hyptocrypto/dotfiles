@@ -62,6 +62,29 @@ return {
         end,
         desc = "Notification History",
       },
+      {
+        "<leader>gd",
+        function()
+          Snacks.picker.git_diff({
+            multi = false,
+            win = {
+              input = {
+                keys = {
+                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
+                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
+                },
+              },
+              list = {
+                keys = {
+                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
+                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
+                },
+              },
+            },
+          })
+        end,
+        desc = "Git Diff (no multi)",
+      },
     },
 
     opts = {
@@ -76,6 +99,13 @@ return {
             keys = {
               ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
               ["<Tab>"] = { "list_down", mode = { "i", "n" } },
+            },
+          },
+          -- Ensure Tab navigation works when focus is on the results list
+          list = {
+            keys = {
+              ["<S-Tab>"] = { "list_up", mode = { "n" } },
+              ["<Tab>"] = { "list_down", mode = { "n" } },
             },
           },
         },
