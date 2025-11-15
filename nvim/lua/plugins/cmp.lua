@@ -7,7 +7,6 @@ return {
       opts = patch(opts)
 
       -- Make Blink own <Tab>/<S-Tab> navigation when menu is visible
-      -- Include 'fallback' so typing Tab works when menu is closed
       opts.keymap = vim.tbl_deep_extend("force", opts.keymap or {}, {
         ["<Tab>"] = { "select_next", "fallback" },
         ["<S-Tab>"] = { "select_prev", "fallback" },
