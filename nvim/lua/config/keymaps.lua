@@ -281,3 +281,17 @@ vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
 
 -- Shift+L to unfold under cursor
 vim.keymap.set("n", "L", "zo", { desc = "Unfold under cursor" })
+
+-- Disable default macro recording on `q`
+vim.keymap.set("n", "q", "<Nop>")
+
+-- Toggle recording macro @q with Shift-M
+vim.keymap.set("n", "M", function()
+  if vim.fn.reg_recording() ~= "" then
+    -- currently recording → stop
+    vim.cmd("normal! q")
+  else
+    -- not recording → start recording into register q
+    vim.cmd("normal! qq")
+  end
+end, { desc = "Toggle macro recording (@q)" })
