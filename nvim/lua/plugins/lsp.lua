@@ -1,62 +1,22 @@
+-- See: https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#vue-support
+local vue_language_server_path = vim.fn.expand("$MASON/packages")
+  .. "/vue-language-server"
+  .. "/node_modules/@vue/language-server"
+local vue_plugin = {
+  name = "@vue/typescript-plugin",
+  location = vue_language_server_path,
+  languages = { "vue" },
+  configNamespace = "typescript",
+}
+
 return {
   "neovim/nvim-lspconfig",
   event = "VeryLazy",
   opts = {
-    -- Performance optimizations
-
-    -- Hard-disable inlay hints for JS/TS/Vue buffers on attach (Neovim 0.10+)
-    -- Also disable redundant formatting to prevent multiple formatters running on save
-    on_attach = function(client, bufnr)
-      -- Hide inline diagnostics in markdown buffers (keep them for Trouble)
-      if vim.bo[bufnr].filetype == "markdown" then
-        pcall(vim.diagnostic.config, {
-          virtual_text = false,
-          virtual_lines = false,
-          signs = false,
-          underline = false,
-          update_in_insert = false,
-        }, bufnr)
-      end
-      if client.name == "vtsls" or client.name == "volar" then
-        pcall(function()
-          if vim.lsp.inlay_hint and vim.lsp.inlay_hint.enable then
-            vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-          end
-        end)
-      end
-      
-      -- Disable formatting for ESLint (use conform.nvim instead)
-      if client.name == "eslint" then
-        client.server_capabilities.documentFormattingProvider = false
-        client.server_capabilities.documentRangeFormattingProvider = false
-      end
-      
-      -- Disable formatting for vtsls/volar (use conform.nvim/eslint_d instead)
-      if client.name == "vtsls" or client.name == "volar" then
-        client.server_capabilities.documentFormattingProvider = false
-        client.server_capabilities.documentRangeFormattingProvider = false
-      end
-    end,
-
     -- Faster LSP startup
     single_file_support = true,
 
     servers = {
-      -- Default capabilities for all servers
-      ["*"] = {
-        capabilities = {
-          textDocument = {
-            completion = {
-              completionItem = {
-                snippetSupport = true,
-                resolveSupport = {
-                  properties = { "documentation", "detail", "additionalTextEdits" },
-                },
-              },
-            },
-          },
-        },
-      },
       -- Go linters (langserver)
       golangci_lint_ls = {
         cmd = { "golangci-lint-langserver" },
@@ -65,13 +25,8 @@ return {
       },
 
       -- Vue (Volar)
-      volar = {
-        -- Let Volar handle only Vue SFCs; TS/JS handled by vtsls
+      vue_ls = {
         filetypes = { "vue" },
-        init_options = {
-          -- Use Volar hybrid mode to integrate with the TS server
-          vue = { hybridMode = true },
-        },
         settings = {
           volar = {
             validation = { template = true, script = true, style = true, hover = true },
@@ -92,14 +47,31 @@ return {
 
       -- TypeScript/JavaScript (VTSLS) — replaces ts_ls/tsserver
       vtsls = {
+        filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+        on_attach = function(client, bufnr)
+          if vim.bo[bufnr].filetype == "vue" then
+            -- Disable only diagnostics; keep all other features
+            client.server_capabilities.diagnosticProvider = false
+            client.handlers["textDocument/publishDiagnostics"] = function() end
+          end
+        end,
         settings = {
           vtsls = {
+            definition = {
+              enableDefinitionLinks = true,
+              fallbackToModuleFile = true,
+            },
             autoUseWorkspaceTsdk = true,
             enableMoveToFileCodeAction = true,
             experimental = {
               completion = { enableServerSideFuzzyMatch = true },
               -- not needed, but ensure no long hints if something flips them on
               maxInlayHintLength = 0,
+            },
+            tsserver = {
+              globalPlugins = {
+                vue_plugin,
+              },
             },
           },
           -- Disable ALL inlay hints for both TS & JS
@@ -148,7 +120,7 @@ return {
         filetypes = { "css", "scss", "less" },
       },
       tailwindcss = {
-        filetypes = { "vue", "javascript", "typescript", "html", "css", "scss" },
+        filetypes = { "javascript", "typescript", "html", "css", "scss" },
       },
 
       -- Markdown / docs
@@ -168,8 +140,6 @@ return {
 
       -- YAML
       yamlls = {},
-
-      -- Python (configured in python.lua)
 
       -- Go LSP with optimized config
       gopls = {

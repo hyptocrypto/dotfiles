@@ -8,7 +8,7 @@ return {
             -- Look for .venv in the project root
             local venv_python = root_dir .. "/.venv/bin/python"
             local venv_path = root_dir .. "/.venv"
-            
+
             if vim.fn.filereadable(venv_python) == 1 then
               config.settings = config.settings or {}
               config.settings.python = config.settings.python or {}
@@ -16,7 +16,7 @@ return {
               config.settings.python.venvPath = root_dir
               config.settings.python.analysis = config.settings.python.analysis or {}
               config.settings.python.analysis.autoSearchPaths = true
-              
+
               -- Add site-packages to extraPaths
               local site_packages = root_dir .. "/.venv/lib/python*/site-packages"
               config.settings.python.analysis.extraPaths = { site_packages }
@@ -30,7 +30,7 @@ return {
     "stevearc/conform.nvim",
     opts = {
       formatters_by_ft = {
-        python = { "ruff_format" },
+        python = { "ruff_format", "ruff_fix", "black" },
       },
       formatters = {
         ruff_format = {
@@ -58,3 +58,4 @@ return {
     },
   },
 }
+
