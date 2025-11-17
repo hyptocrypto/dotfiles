@@ -170,7 +170,33 @@ local function run_nearest_go_test()
 end
 
 -- Function to run all Go tests in the current file
-local function run_go_tests()
+local function run_go_tests_in_file()
+  local test_functions = {}
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  
+  -- Extract all test function names from the current file
+  for _, line in ipairs(lines) do
+    local test_func = line:match("^func%s+(Test[%w_]*)")
+    if test_func then
+      table.insert(test_functions, test_func)
+    end
+  end
+  
+  if #test_functions == 0 then
+    vim.notify("No test functions found in current file", vim.log.levels.WARN, { title = "Go Test" })
+    return
+  end
+  
+  -- Build a regex pattern that matches any of the test functions in this file
+  -- Format: ^(TestFunc1|TestFunc2|TestFunc3)$
+  -- Quote the pattern to prevent shell interpretation of special characters
+  local pattern = "^(" .. table.concat(test_functions, "|") .. ")$"
+  local cmd = "go test -v -run '" .. pattern .. "'"
+  run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
+end
+
+-- Function to run all Go tests in the package
+local function run_go_tests_in_package()
   local cmd = "go test -v"
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
@@ -274,7 +300,8 @@ vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
 vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
-vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
+vim.api.nvim_create_user_command("Gotestall", run_go_tests_in_file, {})
+vim.api.nvim_create_user_command("Gotestpackage", run_go_tests_in_package, {})
 
 -- Shift+H to fold under cursor
 vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
