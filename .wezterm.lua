@@ -5,6 +5,7 @@ config.font = wezterm.font("JetBrains Mono", { weight = "DemiBold" })
 config.window_background_opacity = 0.9 -- Adjust between 0.1 (more transparent) to 1.0 (opaque)
 config.macos_window_background_blur = 20 -- Only for macOS, adjust for blur strength
 config.enable_tab_bar = true
+config.enable_scroll_bar = true
 config.font_size = 15
 config.color_scheme = "nord"
 config.inactive_pane_hsb = {
@@ -22,6 +23,9 @@ config.harfbuzz_features = {
 	"calt=0", -- Disables contextual alternates
 }
 config.keys = {
+	{ key = "p", mods = "CTRL", action = wezterm.action.ActivateCopyMode },
+
+	-- Move to the next tab
 	{
 		key = "Escape",
 		mods = "SHIFT",
