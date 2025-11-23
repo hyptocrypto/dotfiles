@@ -2,7 +2,14 @@
 -- Default autocmds that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
 -- Define the function to run the formatting tools
 
-vim.api.nvim_create_autocmd({ "BufWritePre" }, { pattern = { "*.templ" }, callback = vim.lsp.buf.format })
+-- Format templ files on save
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*.templ",
+  callback = function()
+    vim.lsp.buf.format({ async = true })
+  end,
+  desc = "Format templ files on save",
+})
 
 vim.api.nvim_create_user_command("Script", function()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -35,17 +42,22 @@ vim.api.nvim_create_user_command("Golines", function()
   vim.cmd("silent! %!golines --max-len=130 --base-formatter=gofumpt")
 end, {})
 
-vim.api.nvim_create_autocmd("BufWritePost", {
+-- Auto-fix Python files with ruff and format on save
+vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.py",
   callback = function()
-    vim.lsp.buf.code_action({
-      context = {
-        only = {
-          "source.fixAll.ruff",
+    -- Only run if LSP is available
+    if vim.lsp.buf_is_attached(0) then
+      -- Run code actions asynchronously
+      vim.lsp.buf.code_action({
+        context = {
+          only = {
+            "source.fixAll.ruff",
+          },
         },
-      },
-      apply = true,
-    })
-    vim.lsp.buf.format({ async = false })
+        apply = true,
+      })
+    end
   end,
+  desc = "Auto-fix Python files with ruff on save",
 })

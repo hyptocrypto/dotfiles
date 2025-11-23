@@ -1,41 +1,108 @@
+-- See: https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#vue-support
+local vue_language_server_path = vim.fn.expand("$MASON/packages")
+  .. "/vue-language-server"
+  .. "/node_modules/@vue/language-server"
+local vue_plugin = {
+  name = "@vue/typescript-plugin",
+  location = vue_language_server_path,
+  languages = { "vue" },
+  configNamespace = "typescript",
+}
+
 return {
   "neovim/nvim-lspconfig",
+  event = "VeryLazy",
   opts = {
+    -- Faster LSP startup
+    single_file_support = true,
+
     servers = {
+      -- Go linters (langserver)
       golangci_lint_ls = {
-        cmd = {
-          "golangci-lint-langserver",
-        },
+        cmd = { "golangci-lint-langserver" },
         filetypes = { "go", "gomod" },
         root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
       },
-      -- Volar for Vue files
-      volar = {
-        filetypes = { "vue", "javascript", "typescript", "json" },
-        init_options = {
-          typescript = {
-            tsdk = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/typescript/lib",
-          },
-          vue = { hybridMode = false },
-        },
+
+      -- Vue (Volar)
+      vue_ls = {
+        filetypes = { "vue" },
         settings = {
           volar = {
             validation = { template = true, script = true, style = true, hover = true },
           },
-        },
-      },
-      ts_ls = {
-        init_options = {
-          plugins = {
-            {
-              name = "@vue/typescript-plugin",
-              location = vim.fn.stdpath("data")
-                .. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
-              languages = { "vue" },
+          -- Keep TS inlay hints disabled if routed via Volar
+          typescript = {
+            inlayHints = {
+              enumMemberValues = { enabled = false },
+              functionLikeReturnTypes = { enabled = false },
+              parameterNames = { enabled = "none" },
+              parameterTypes = { enabled = false },
+              propertyDeclarationTypes = { enabled = false },
+              variableTypes = { enabled = false },
             },
           },
         },
       },
+
+      -- TypeScript/JavaScript (VTSLS) — replaces ts_ls/tsserver
+      vtsls = {
+        filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+        on_attach = function(client, bufnr)
+          if vim.bo[bufnr].filetype == "vue" then
+            -- Disable only diagnostics; keep all other features
+            client.server_capabilities.diagnosticProvider = false
+            client.handlers["textDocument/publishDiagnostics"] = function() end
+          end
+        end,
+        settings = {
+          vtsls = {
+            definition = {
+              enableDefinitionLinks = true,
+              fallbackToModuleFile = true,
+            },
+            autoUseWorkspaceTsdk = true,
+            enableMoveToFileCodeAction = true,
+            experimental = {
+              completion = { enableServerSideFuzzyMatch = true },
+              -- not needed, but ensure no long hints if something flips them on
+              maxInlayHintLength = 0,
+            },
+            tsserver = {
+              globalPlugins = {
+                vue_plugin,
+              },
+            },
+          },
+          -- Disable ALL inlay hints for both TS & JS
+          typescript = {
+            inlayHints = {
+              enumMemberValues = { enabled = false },
+              functionLikeReturnTypes = { enabled = false },
+              parameterNames = { enabled = "none" },
+              parameterTypes = { enabled = false },
+              propertyDeclarationTypes = { enabled = false },
+              variableTypes = { enabled = false },
+            },
+            suggest = { completeFunctionCalls = true },
+            updateImportsOnFileMove = { enabled = "prompt" },
+          },
+          javascript = {
+            inlayHints = {
+              enumMemberValues = { enabled = false },
+              functionLikeReturnTypes = { enabled = false },
+              parameterNames = { enabled = "none" },
+              parameterTypes = { enabled = false },
+              propertyDeclarationTypes = { enabled = false },
+              variableTypes = { enabled = false },
+            },
+            suggest = { completeFunctionCalls = true },
+            updateImportsOnFileMove = { enabled = "prompt" },
+          },
+        },
+      },
+
+      -- ESLint
       eslint = {
         settings = {
           validate = "on",
@@ -44,45 +111,50 @@ return {
           workingDirectory = { mode = "auto" },
         },
       },
-      -- TypeScript & JavaScript LSP
-      tsserver = {
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-      },
 
       -- JSON Language Server
       jsonls = {},
 
-      -- CSS, SCSS, and Tailwind LSP
+      -- CSS / SCSS / Less
       cssls = {
         filetypes = { "css", "scss", "less" },
       },
       tailwindcss = {
-        filetypes = { "vue", "javascript", "typescript", "html", "css", "scss" },
+        filetypes = { "javascript", "typescript", "html", "css", "scss" },
       },
 
-      -- Markdown and Docs LSP
+      -- Markdown / docs
       marksman = {},
 
-      -- YAML LSP
+      -- Grammar and spell checking for prose
+      ltex = {
+        filetypes = { "markdown", "text", "gitcommit", "latex" },
+        settings = {
+          ltex = {
+            language = "en-US",
+            -- Run checks while editing with debounce to prevent slowdowns
+            checkFrequency = "edit",
+          },
+        },
+      },
+
+      -- YAML
       yamlls = {},
 
-      -- Python LSP
-      pyright = {},
-
-      -- Go LSP with Advanced Config
+      -- Go LSP with optimized config
       gopls = {
         settings = {
           gopls = {
             gofumpt = true,
             codelenses = {
-              gc_details = true,
+              gc_details = false,
               generate = true,
               regenerate_cgo = true,
-              run_govulncheck = true,
+              run_govulncheck = false,
               test = true,
               tidy = true,
-              upgrade_dependency = true,
-              vendor = true,
+              upgrade_dependency = false,
+              vendor = false,
             },
             hints = {
               assignVariableTypes = false,
@@ -97,7 +169,7 @@ return {
               nilness = true,
               unusedparams = true,
               unusedwrite = true,
-              fieldalignment = true,
+              fieldalignment = false,
               shadow = false,
               unusedvariable = true,
               unusedresult = true,
@@ -107,21 +179,31 @@ return {
               printf = true,
               ifaceassert = true,
               stringintconv = true,
-              atomicalign = true,
+              atomicalign = false,
               undeclaredname = true,
               fillreturns = true,
               nonewvars = true,
-              stacktrace = true,
+              stacktrace = false,
             },
             usePlaceholders = true,
             completeUnimported = true,
-            directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules", "-vendor-patched" },
+            directoryFilters = {
+              "-.git",
+              "-.vscode",
+              "-.idea",
+              "-.vscode-test",
+              "-node_modules",
+              "-vendor-patched",
+              "-testdata",
+            },
             semanticTokens = true,
+            staticcheck = true,
+            experimentalPostfixCompletions = true,
           },
         },
       },
 
-      -- Docker LSP
+      -- Docker
       dockerls = {},
       docker_compose_language_service = {},
     },

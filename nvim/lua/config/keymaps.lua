@@ -54,35 +54,35 @@ end
 vim.keymap.set("n", "<leader>t", ToggleNeoTreeOrCode, { desc = "Toggle between Neo-tree and code file" })
 
 -- Simplify changing variable names
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>cn",
-  ":let @/='\\<'.expand('<cword>').'\\>'<CR>cgn",
-  { noremap = true, silent = true }
-)
+vim.keymap.set("n", "<leader>cn", ":let @/='\\<'.expand('<cword>').'\\>'<CR>cgn", { desc = "Change variable name" })
 
-vim.keymap.set("n", "D", "10jzz", { noremap = true, silent = true })
-vim.keymap.set("n", "U", "10kzz", { noremap = true, silent = true })
+vim.keymap.set("n", "D", "10jzz", { desc = "Move down 10 lines and center" })
+vim.keymap.set("n", "U", "10kzz", { desc = "Move up 10 lines and center" })
 
 -- Make backspace behave and wrap on newlines
 vim.opt.backspace = { "eol", "start", "indent" }
 vim.opt.whichwrap:append("<,>,h,l")
 
 -- Map Tab to indent in normal, visual, and select modes
-vim.api.nvim_set_keymap("n", "<Tab>", ">>", { noremap = true })
-vim.api.nvim_set_keymap("v", "<Tab>", ">gv", { noremap = true })
-vim.api.nvim_set_keymap("s", "<Tab>", ">", { noremap = true })
+vim.keymap.set("n", "<Tab>", ">>", { desc = "Indent line" })
+vim.keymap.set("v", "<Tab>", ">gv", { desc = "Indent selection" })
+vim.keymap.set("s", "<Tab>", ">", { desc = "Indent selection" })
 
 -- Map Shift+Tab to unindent in normal, visual, and select modes
-vim.api.nvim_set_keymap("n", "<S-Tab>", "<<", { noremap = true })
-vim.api.nvim_set_keymap("v", "<S-Tab>", "<gv", { noremap = true })
-vim.api.nvim_set_keymap("s", "<S-Tab>", "<", { noremap = true })
+vim.keymap.set("n", "<S-Tab>", "<<", { desc = "Unindent line" })
+vim.keymap.set("v", "<S-Tab>", "<gv", { desc = "Unindent selection" })
+vim.keymap.set("s", "<S-Tab>", "<", { desc = "Unindent selection" })
 
--- Personal
-vim.api.nvim_set_keymap("i", "jk", "<Esc>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "r", "<C-r>", { noremap = true, silent = true })
---- Dont copy to reg when pasting
-vim.api.nvim_set_keymap("v", "p", '"_dP', { noremap = true, silent = true })
+-- Personal keymaps
+vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
+vim.keymap.set("n", "r", "<C-r>", { desc = "Redo" })
+
+-- Delete operations that don't overwrite clipboard
+-- vim.keymap.set("n", "dd", '"_dd', { desc = "Delete line without copying" })
+
+-- Keep normal paste behavior (don't override p/P)
+-- Only override visual mode paste to not copy when pasting over selection
+vim.keymap.set("v", "p", '"_dP', { desc = "Paste without copying selection" })
 
 function Insert_iferr()
   local lines = {
@@ -93,7 +93,7 @@ function Insert_iferr()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0)) -- Get the current cursor position
   vim.api.nvim_buf_set_lines(0, row, row, false, lines) -- Insert the lines below the cursor
 end
-vim.api.nvim_set_keymap("c", "ifer", ":lua Insert_iferr()<CR>", { noremap = true, silent = true })
+vim.keymap.set("c", "ifer", ":lua Insert_iferr()<CR>", { desc = "Insert Go error handling" })
 
 function ToggleBreakpoint()
   local filetype = vim.bo.filetype
@@ -121,19 +121,30 @@ end
 local function run_go_test_command(cmd, success_title, fail_title)
   -- Run the command in the current file's directory
   local file_dir = vim.fn.expand("%:p:h") -- Get the directory of the current file
-  local output = vim.fn.systemlist("cd " .. file_dir .. " && " .. cmd)
-  local output_str = table.concat(output, "\n")
   local timeout = 5000
 
-  if vim.v.shell_error == 0 then
-    vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
-  else
-    vim.notify(
-      "Error running go test:\n" .. output_str,
-      vim.log.levels.ERROR,
-      { title = fail_title, timeout = timeout }
-    )
-  end
+  -- Notify that the test is starting
+  vim.notify("Running: " .. cmd, vim.log.levels.INFO, { title = "Go Test", timeout = 2000 })
+
+  -- Run the command asynchronously
+  vim.system({ "sh", "-c", "cd " .. file_dir .. " && " .. cmd }, { text = true }, function(result)
+    vim.schedule(function()
+      local output_str = result.stdout or ""
+      if result.stderr and result.stderr ~= "" then
+        output_str = output_str .. "\n" .. result.stderr
+      end
+
+      if result.code == 0 then
+        vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
+      else
+        vim.notify(
+          "Error running go test:\n" .. output_str,
+          vim.log.levels.ERROR,
+          { title = fail_title, timeout = timeout }
+        )
+      end
+    end)
+  end)
 end
 
 -- Function to run the nearest Go test under the cursor
@@ -159,7 +170,33 @@ local function run_nearest_go_test()
 end
 
 -- Function to run all Go tests in the current file
-local function run_go_tests()
+local function run_go_tests_in_file()
+  local test_functions = {}
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  
+  -- Extract all test function names from the current file
+  for _, line in ipairs(lines) do
+    local test_func = line:match("^func%s+(Test[%w_]*)")
+    if test_func then
+      table.insert(test_functions, test_func)
+    end
+  end
+  
+  if #test_functions == 0 then
+    vim.notify("No test functions found in current file", vim.log.levels.WARN, { title = "Go Test" })
+    return
+  end
+  
+  -- Build a regex pattern that matches any of the test functions in this file
+  -- Format: ^(TestFunc1|TestFunc2|TestFunc3)$
+  -- Quote the pattern to prevent shell interpretation of special characters
+  local pattern = "^(" .. table.concat(test_functions, "|") .. ")$"
+  local cmd = "go test -v -run '" .. pattern .. "'"
+  run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
+end
+
+-- Function to run all Go tests in the package
+local function run_go_tests_in_package()
   local cmd = "go test -v"
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
@@ -256,17 +293,32 @@ local function debug_pytest()
 end
 
 -- Create a command to trigger the function
-vim.api.nvim_set_keymap("c", "bb", ":lua ToggleBreakpoint()<CR>:<Esc>", { noremap = true, silent = true })
+vim.keymap.set("c", "bb", ":lua ToggleBreakpoint()<CR>:<Esc>", { desc = "Toggle breakpoint" })
 
 vim.api.nvim_create_user_command("Pytest", run_nearest_pytest, {})
 vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
 vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
-vim.api.nvim_create_user_command("Gotestall", run_go_tests, {})
+vim.api.nvim_create_user_command("Gotestall", run_go_tests_in_file, {})
+vim.api.nvim_create_user_command("Gotestpackage", run_go_tests_in_package, {})
 
 -- Shift+H to fold under cursor
-vim.api.nvim_set_keymap("n", "H", "zc", { noremap = true, silent = true })
+vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
 
 -- Shift+L to unfold under cursor
-vim.api.nvim_set_keymap("n", "L", "zo", { noremap = true, silent = true })
+vim.keymap.set("n", "L", "zo", { desc = "Unfold under cursor" })
+
+-- Disable default macro recording on `q`
+vim.keymap.set("n", "q", "<Nop>")
+
+-- Toggle recording macro @q with Shift-M
+vim.keymap.set("n", "M", function()
+  if vim.fn.reg_recording() ~= "" then
+    -- currently recording → stop
+    vim.cmd("normal! q")
+  else
+    -- not recording → start recording into register q
+    vim.cmd("normal! qq")
+  end
+end, { desc = "Toggle macro recording (@q)" })
