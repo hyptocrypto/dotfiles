@@ -156,6 +156,8 @@ return {
               min_width = 120,
               height = 0.8,
               border = "rounded",
+              title = "{source} {live}",
+              title_pos = "center",
               box = "vertical",
               { win = "input", height = 1, border = "bottom" },
               {
