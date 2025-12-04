@@ -30,6 +30,10 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
   checker = { enabled = true }, -- automatically check for plugin updates
+  -- Soft rounded UI for Lazy.nvim
+  ui = {
+    border = "rounded",
+  },
   performance = {
     rtp = {
       -- disable some rtp plugins

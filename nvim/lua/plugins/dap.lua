@@ -20,7 +20,34 @@ return {
       local dapui = require("dapui")
       require("dap-go").setup()
 
+      -- Soft rounded UI configuration
       dapui.setup({
+        -- Rounded floating windows
+        floating = {
+          border = "rounded",
+          mappings = {
+            close = { "q", "<Esc>" },
+          },
+        },
+        -- Softer icons
+        icons = {
+          expanded = "",
+          collapsed = "",
+          current_frame = "●",
+        },
+        controls = {
+          icons = {
+            pause = "",
+            play = "",
+            step_into = "",
+            step_over = "",
+            step_out = "",
+            step_back = "",
+            run_last = "",
+            terminate = "",
+            disconnect = "",
+          },
+        },
         layouts = {
           {
             elements = {
@@ -38,7 +65,13 @@ return {
             position = "bottom",
           },
         },
+        -- Rounded window options
+        render = {
+          indent = 1,
+          max_value_lines = 100,
+        },
       })
+
       -- Clean up duplicate configs
       local unique_configs = {}
       local seen = {}
