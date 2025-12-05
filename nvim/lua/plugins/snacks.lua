@@ -115,6 +115,7 @@ return {
         -- Float windows
         float = {
           border = "rounded",
+          backdrop = false,
           wo = {
             winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
           },
