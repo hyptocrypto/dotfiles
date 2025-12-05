@@ -1,11 +1,3 @@
-local function toggleUI()
-  local ok, neotree = pcall(require, "neo-tree.command")
-  if ok then
-    neotree.execute({ action = "close" })
-  end
-  require("dapui").toggle({ reset = true })
-end
-
 return {
   {
     "mfussenegger/nvim-dap",
@@ -104,7 +96,7 @@ return {
 
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
-        toggleUI()
+        dapui.toggle({ reset = true })
       end
       dap.listeners.before.event_terminated["dapui_config"] = function()
         dapui.close()
@@ -124,7 +116,7 @@ return {
         {
           "<Leader>du",
           function()
-            toggleUI()
+            require("dapui").toggle({ reset = true })
           end,
           desc = "Toggle Debug UI",
         },

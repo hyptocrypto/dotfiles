@@ -1,91 +1,109 @@
+-- Helper to get project root (normalized, no trailing slash)
+local function get_root()
+  return vim.fn.fnamemodify(vim.fn.getcwd(), ":p"):gsub("/$", "")
+end
+
+-- Helper to check if path is at root (can't go higher)
+local function is_at_root(dir)
+  local root = get_root()
+  local normalized_dir = vim.fn.fnamemodify(dir, ":p"):gsub("/$", "")
+  return normalized_dir == root
+end
+
 return {
-  "nvim-neo-tree/neo-tree.nvim",
-  event = "VeryLazy",
-  opts = {
-    -- Soft rounded popup borders
-    popup_border_style = "rounded",
+  -- Disable neo-tree
+  { "nvim-neo-tree/neo-tree.nvim", enabled = false },
 
-    -- Softer icons
-    default_component_configs = {
-      indent = {
-        indent_size = 2,
-        padding = 1,
-        with_markers = true,
-        indent_marker = "│",
-        last_indent_marker = "╰",
-        highlight = "NeoTreeIndentMarker",
-        with_expanders = true,
-        expander_collapsed = "",
-        expander_expanded = "",
-        expander_highlight = "NeoTreeExpander",
-      },
-      icon = {
-        folder_closed = "",
-        folder_open = "",
-        folder_empty = "",
-        folder_empty_open = "",
-        default = "",
-      },
-      modified = {
-        symbol = "●",
-        highlight = "NeoTreeModified",
-      },
-      git_status = {
-        symbols = {
-          added = "●",
-          modified = "●",
-          deleted = "●",
-          renamed = "●",
-          untracked = "○",
-          ignored = "◌",
-          unstaged = "○",
-          staged = "●",
-          conflict = "●",
+  -- Add oil.nvim
+  {
+    "stevearc/oil.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("oil").setup({
+        -- Oil will take over directory buffers (e.g. `vim .` or `:e src/`)
+        default_file_explorer = true,
+
+        -- Show hidden files
+        view_options = {
+          show_hidden = true,
+          -- Hide certain files
+          is_hidden_file = function(name, _)
+            local hidden = {
+              ".git",
+              ".DS_Store",
+              "thumbs.db",
+              "node_modules",
+              ".venv",
+              "__pycache__",
+              ".pytest_cache",
+            }
+            for _, pattern in ipairs(hidden) do
+              if name == pattern then
+                return true
+              end
+            end
+            return false
+          end,
         },
+
+        -- Keymaps in oil buffer
+        keymaps = {
+          ["g?"] = "actions.show_help",
+          ["<CR>"] = "actions.select",
+          ["<C-v>"] = "actions.select_vsplit",
+          ["<C-s>"] = "actions.select_split",
+          ["<C-t>"] = "actions.select_tab",
+          ["<C-p>"] = "actions.preview",
+          ["<C-c>"] = "actions.close",
+          ["<Esc>"] = "actions.close",
+          ["<C-r>"] = "actions.refresh",
+          -- Prevent navigating above root
+          ["-"] = {
+            callback = function()
+              local oil = require("oil")
+              local current_dir = oil.get_current_dir()
+              if current_dir then
+                if is_at_root(current_dir) then
+                  vim.notify("Already at project root", vim.log.levels.INFO)
+                else
+                  require("oil.actions").parent.callback()
+                end
+              end
+            end,
+            desc = "Parent directory (bounded to root)",
+          },
+          ["gs"] = "actions.change_sort",
+          ["gx"] = "actions.open_external",
+          ["g."] = "actions.toggle_hidden",
+          ["g\\"] = "actions.toggle_trash",
+        },
+
+        -- Use rounded floating window
+        float = {
+          padding = 2,
+          max_width = 90,
+          max_height = 30,
+          border = "rounded",
+          win_options = {
+            winblend = 0,
+          },
+        },
+
+        -- Skip confirmation for simple operations
+        skip_confirm_for_simple_edits = true,
+
+        -- Deleted files go to trash
+        delete_to_trash = true,
+      })
+    end,
+    keys = {
+      {
+        "<leader>e",
+        function()
+          require("oil").toggle_float(get_root())
+        end,
+        desc = "Toggle Oil (file explorer)",
       },
     },
-
-    -- Window appearance
-    window = {
-      position = "left",
-      width = 35,
-      mappings = {
-        ["<space>"] = "none",
-      },
-    },
-
-    filesystem = {
-      filtered_items = {
-        visible = true,
-        show_hidden_count = true,
-        hide_dotfiles = false,
-        hide_gitignored = true,
-        hide_by_name = {
-          ".git",
-          ".DS_Store",
-          "thumbs.db",
-          "node_modules",
-          ".venv",
-          "__pycache__",
-          ".pytest_cache",
-        },
-        never_show = {
-          ".git",
-          ".DS_Store",
-          "thumbs.db",
-        },
-      },
-      -- Performance optimizations
-      follow_current_file = {
-        enabled = true,
-        leave_dirs_open = false,
-      },
-      -- Avoid ENOENT errors from libuv when files/dirs are rapidly changing
-      use_libuv_file_watcher = false,
-    },
-    -- Performance settings
-    enable_git_status = true,
-    enable_diagnostics = true,
-    open_files_do_not_replace_types = { "terminal", "Trouble", "trouble", "qf", "Outline" },
   },
 }
