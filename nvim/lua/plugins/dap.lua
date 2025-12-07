@@ -1,11 +1,3 @@
-local function toggleUI()
-  local ok, neotree = pcall(require, "neo-tree.command")
-  if ok then
-    neotree.execute({ action = "close" })
-  end
-  require("dapui").toggle({ reset = true })
-end
-
 return {
   {
     "mfussenegger/nvim-dap",
@@ -20,7 +12,34 @@ return {
       local dapui = require("dapui")
       require("dap-go").setup()
 
+      -- Soft rounded UI configuration
       dapui.setup({
+        -- Rounded floating windows
+        floating = {
+          border = "rounded",
+          mappings = {
+            close = { "q", "<Esc>" },
+          },
+        },
+        -- Softer icons
+        icons = {
+          expanded = "",
+          collapsed = "",
+          current_frame = "●",
+        },
+        controls = {
+          icons = {
+            pause = "",
+            play = "",
+            step_into = "",
+            step_over = "",
+            step_out = "",
+            step_back = "",
+            run_last = "",
+            terminate = "",
+            disconnect = "",
+          },
+        },
         layouts = {
           {
             elements = {
@@ -38,7 +57,13 @@ return {
             position = "bottom",
           },
         },
+        -- Rounded window options
+        render = {
+          indent = 1,
+          max_value_lines = 100,
+        },
       })
+
       -- Clean up duplicate configs
       local unique_configs = {}
       local seen = {}
@@ -71,7 +96,7 @@ return {
 
       -- Auto open/close UI when debugging starts/stops
       dap.listeners.after.event_initialized["dapui_config"] = function()
-        toggleUI()
+        dapui.toggle({ reset = true })
       end
       dap.listeners.before.event_terminated["dapui_config"] = function()
         dapui.close()
@@ -91,7 +116,7 @@ return {
         {
           "<Leader>du",
           function()
-            toggleUI()
+            require("dapui").toggle({ reset = true })
           end,
           desc = "Toggle Debug UI",
         },

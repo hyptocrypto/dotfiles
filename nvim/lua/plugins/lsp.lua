@@ -9,6 +9,9 @@ local vue_plugin = {
   configNamespace = "typescript",
 }
 
+-- Set rounded borders for LspInfo window
+require("lspconfig.ui.windows").default_options.border = "rounded"
+
 return {
   "neovim/nvim-lspconfig",
   event = "VeryLazy",

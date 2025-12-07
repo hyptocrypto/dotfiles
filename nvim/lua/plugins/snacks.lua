@@ -88,7 +88,88 @@ return {
     },
 
     opts = {
+      -- Soft rounded styles for all Snacks components
+      styles = {
+        -- Notification style
+        notification = {
+          border = "rounded",
+          wo = {
+            wrap = true,
+            winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+          },
+        },
+        -- Input prompt style
+        input = {
+          border = "rounded",
+          wo = {
+            winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+          },
+        },
+        -- Confirmation dialogs
+        confirm = {
+          border = "rounded",
+          wo = {
+            winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+          },
+        },
+        -- Float windows
+        float = {
+          border = "rounded",
+          backdrop = false,
+          wo = {
+            winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+          },
+        },
+      },
+
+      -- Notifier with rounded borders
+      notifier = {
+        timeout = 3000,
+        style = "compact",
+        icons = {
+          error = " ",
+          warn = " ",
+          info = " ",
+          debug = " ",
+          trace = " ",
+        },
+      },
+
+      -- Dashboard with softer look
+      dashboard = {
+        preset = {
+          header = [[
+ ╭───────────────────────────────────────╮
+ │                                       │
+ │            N E O V I M                │
+ │                                       │
+ ╰───────────────────────────────────────╯]],
+        },
+      },
+
       picker = {
+        -- Custom layout without backdrop
+        layouts = {
+          default = {
+            layout = {
+              backdrop = false,
+              width = 0.8,
+              min_width = 120,
+              height = 0.8,
+              border = "rounded",
+              title = "{source} {live}",
+              title_pos = "center",
+              box = "vertical",
+              { win = "input", height = 1, border = "bottom" },
+              {
+                box = "horizontal",
+                { win = "list", border = "none" },
+                { win = "preview", width = 0.5, border = "left" },
+              },
+            },
+          },
+        },
+        layout = "default",
         defaults = {
           cwd = project_root,
           hidden = true,
@@ -101,7 +182,6 @@ return {
               ["<Tab>"] = { "list_down", mode = { "i", "n" } },
             },
           },
-          -- Ensure Tab navigation works when focus is on the results list
           list = {
             keys = {
               ["<S-Tab>"] = { "list_up", mode = { "n" } },
@@ -110,17 +190,12 @@ return {
           },
         },
         debug = {
-          scores = false, -- show scores in the list
+          scores = false,
         },
         matcher = {
           frecency = true,
         },
-        formatters = {
-          -- file = {
-          --   filename_first = true, -- display filename before the file path
-          --   truncate = 80,
-          -- },
-        },
+        formatters = {},
         sources = {
           grep = {
             hidden = true,
@@ -144,6 +219,8 @@ return {
               "**/temp/**",
               "**/.DS_Store",
               "**/Thumbs.db",
+              "**/venv",
+              "**/.venv",
             },
           },
           files = {
@@ -168,6 +245,8 @@ return {
               "**/temp/**",
               "**/.DS_Store",
               "**/Thumbs.db",
+              "**/venv",
+              "**/.venv",
             },
           },
         },
