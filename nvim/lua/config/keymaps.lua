@@ -67,15 +67,62 @@ function ToggleBreakpoint()
   end
 end
 
+-- ============================================================================
+-- Go Test Helper Functions
+-- ============================================================================
+
+-- Extract test function name from a line
+local function extract_go_test_name(line)
+  return line:match("^func%s+(Test[%w_]*)")
+end
+
+-- Find the nearest Go test function from the cursor position
+local function find_nearest_go_test()
+  local cursor_line = vim.fn.line(".")
+
+  -- Search backward from cursor to find the nearest test function
+  for line = cursor_line, 1, -1 do
+    local current_line = vim.fn.getline(line)
+    local test_func = extract_go_test_name(current_line)
+    if test_func then
+      return test_func, line
+    end
+  end
+
+  return nil, nil
+end
+
+-- Extract all Go test function names from the current buffer
+local function extract_all_go_tests()
+  local test_functions = {}
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  for _, line in ipairs(lines) do
+    local test_func = extract_go_test_name(line)
+    if test_func then
+      table.insert(test_functions, test_func)
+    end
+  end
+
+  return test_functions
+end
+
+-- Build a test run pattern for Go tests
+local function build_go_test_pattern(test_functions)
+  if #test_functions == 1 then
+    return "^" .. test_functions[1] .. "$"
+  else
+    return "^(" .. table.concat(test_functions, "|") .. ")$"
+  end
+end
+
+-- Run a Go test command
 local function run_go_test_command(cmd, success_title, fail_title)
-  -- Run the command in the current file's directory
-  local file_dir = vim.fn.expand("%:p:h") -- Get the directory of the current file
+  local file_dir = vim.fn.expand("%:p:h")
   local timeout = 5000
 
-  -- Notify that the test is starting
   vim.notify("Running: " .. cmd, vim.log.levels.INFO, { title = "Go Test", timeout = 2000 })
 
-  -- Run the command asynchronously
   vim.system({ "sh", "-c", "cd " .. file_dir .. " && " .. cmd }, { text = true }, function(result)
     vim.schedule(function()
       local output_str = result.stdout or ""
@@ -98,48 +145,27 @@ end
 
 -- Function to run the nearest Go test under the cursor
 local function run_nearest_go_test()
-  -- Get the test name under the cursor
-  local test_name = vim.fn.search("^func Test", "bnW")
-  if test_name == 0 then
+  local test_func = find_nearest_go_test()
+  if not test_func then
     vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Go Test" })
     return
   end
 
-  -- Extract the name of the test function
-  local line = vim.fn.getline(test_name)
-  local test_func = line:match("^func%s+(Test[%w_]*)")
-  if not test_func then
-    vim.notify("Failed to parse test function name", vim.log.levels.ERROR, { title = "Go Test" })
-    return
-  end
-
-  -- Build and run the `go test` command
-  local cmd = "go test -v -run ^" .. test_func .. "$"
+  local pattern = build_go_test_pattern({ test_func })
+  local cmd = "go test -v -run " .. pattern
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
 
 -- Function to run all Go tests in the current file
 local function run_go_tests_in_file()
-  local test_functions = {}
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  
-  -- Extract all test function names from the current file
-  for _, line in ipairs(lines) do
-    local test_func = line:match("^func%s+(Test[%w_]*)")
-    if test_func then
-      table.insert(test_functions, test_func)
-    end
-  end
-  
+  local test_functions = extract_all_go_tests()
+
   if #test_functions == 0 then
     vim.notify("No test functions found in current file", vim.log.levels.WARN, { title = "Go Test" })
     return
   end
-  
-  -- Build a regex pattern that matches any of the test functions in this file
-  -- Format: ^(TestFunc1|TestFunc2|TestFunc3)$
-  -- Quote the pattern to prevent shell interpretation of special characters
-  local pattern = "^(" .. table.concat(test_functions, "|") .. ")$"
+
+  local pattern = build_go_test_pattern(test_functions)
   local cmd = "go test -v -run '" .. pattern .. "'"
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
@@ -150,15 +176,32 @@ local function run_go_tests_in_package()
   run_go_test_command(cmd, "Go Test Success", "Go Test Failed")
 end
 
+-- ============================================================================
+-- Python Test Helper Functions
+-- ============================================================================
+
+-- Find the nearest Python test function from the cursor position
+local function find_nearest_pytest()
+  local cursor_line = vim.fn.line(".")
+
+  for line = cursor_line, 1, -1 do
+    local current_line = vim.fn.getline(line)
+    local test_name = current_line:match("^def%s+(test_%w+)")
+    if test_name then
+      return test_name
+    end
+  end
+
+  return nil
+end
+
+-- Run a pytest command
 local function run_pytest_command(cmd, success_title, fail_title)
-  -- Find the root of the project
   local project_root = vim.fn.getcwd()
   local venv_path = project_root .. "/.venv/bin/activate"
   local timeout = 5000
 
-  -- Check if .venv exists
   if vim.fn.filereadable(venv_path) == 1 or vim.fn.isdirectory(project_root .. "/.venv") == 1 then
-    -- Prepend the .venv Python binary to the command
     local python_bin = project_root .. "/.venv/bin/python"
     cmd = python_bin .. " -m " .. cmd
   else
@@ -170,11 +213,9 @@ local function run_pytest_command(cmd, success_title, fail_title)
     return
   end
 
-  -- Run the command
   local output = vim.fn.systemlist(cmd)
   local output_str = table.concat(output, "\n")
 
-  -- Check the result and notify
   if vim.v.shell_error == 0 then
     vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
   else
@@ -183,26 +224,12 @@ local function run_pytest_command(cmd, success_title, fail_title)
 end
 
 local function run_nearest_pytest()
-  -- Search backward from the cursor to find the nearest test function
-  local cursor_line = vim.fn.line(".")
-  local test_name = nil
-
-  -- Search backward for a function definition starting with "test_"
-  for line = cursor_line, 1, -1 do
-    local current_line = vim.fn.getline(line)
-    test_name = current_line:match("^def%s+(test_%w+)")
-    if test_name then
-      break
-    end
-  end
-
-  -- If no test name is found, notify the user
+  local test_name = find_nearest_pytest()
   if not test_name then
     vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Pytest" })
     return
   end
 
-  -- Build the pytest command to run the specific test
   local cmd = string.format("pytest -v -k '%s'", test_name)
   run_pytest_command(cmd, "Pytest Success", "Pytest Failed")
 end
@@ -213,30 +240,15 @@ local function run_all_pytests()
 end
 
 local function debug_pytest()
-  -- Get the nearest test name under the cursor
-  local cursor_line = vim.fn.line(".")
-  local test_name = nil
-
-  -- Search backward for the nearest test function starting with "test_"
-  for line = cursor_line, 1, -1 do
-    local current_line = vim.fn.getline(line)
-    test_name = current_line:match("^def%s+(test_%w+)")
-    if test_name then
-      break
-    end
-  end
-
+  local test_name = find_nearest_pytest()
   if not test_name then
     vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Debug Pytest" })
     return
   end
 
-  -- Build the pytest command
   local cmd = string.format("startenv && pytest -v -k '%s' -s", test_name)
-
-  -- Open the terminal with snacks
   require("snacks").terminal.open()
-  vim.cmd("startinsert") -- Ensure insert mode is active in the terminal
+  vim.cmd("startinsert")
   vim.api.nvim_put({ cmd }, "c", true, true)
   vim.notify("Running command in terminal: " .. cmd, vim.log.levels.INFO, { title = "Debug Pytest" })
 end
@@ -248,9 +260,36 @@ vim.api.nvim_create_user_command("Pytest", run_nearest_pytest, {})
 vim.api.nvim_create_user_command("Pytestd", debug_pytest, {})
 vim.api.nvim_create_user_command("Pytestall", run_all_pytests, {})
 
+-- Function to debug the parent Go test function (not just t.Run sub-tests)
+local function debug_go_test()
+  local dap = require("dap")
+  local test_func = find_nearest_go_test()
+
+  if not test_func then
+    vim.notify("No test function found near the cursor", vim.log.levels.WARN, { title = "Debug Go Test" })
+    return
+  end
+
+  local file_dir = vim.fn.expand("%:p:h")
+  local test_run_pattern = build_go_test_pattern({ test_func })
+
+  local config = {
+    type = "go",
+    name = "Debug Test: " .. test_func,
+    request = "launch",
+    mode = "test",
+    program = file_dir,
+    args = { "-test.run", test_run_pattern },
+  }
+
+  dap.run(config)
+  vim.notify("Debugging test: " .. test_func, vim.log.levels.INFO, { title = "Debug Go Test" })
+end
+
 vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests_in_file, {})
 vim.api.nvim_create_user_command("Gotestpackage", run_go_tests_in_package, {})
+vim.api.nvim_create_user_command("GoDebugTest", debug_go_test, {})
 
 -- Shift+H to fold under cursor
 vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
@@ -271,3 +310,28 @@ vim.keymap.set("n", "M", function()
     vim.cmd("normal! qq")
   end
 end, { desc = "Toggle macro recording (@q)" })
+
+-- Focus on main code window (away from side panels like Oil)
+vim.keymap.set("n", "<leader>t", function()
+  -- Find the main code window (not Oil, not terminal, etc.)
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    local buf_name = vim.api.nvim_buf_get_name(buf)
+    local filetype = vim.bo[buf].filetype
+
+    -- Skip Oil buffers, terminals, and other special buffers
+    if vim.bo[buf].buftype ~= "terminal" and filetype ~= "oil" and not buf_name:match("oil://") and filetype ~= "" then -- Has a filetype (actual code file)
+      vim.api.nvim_set_current_win(win)
+      return
+    end
+  end
+
+  -- Fallback: just go to the first window that's not the current one
+  local current_win = vim.api.nvim_get_current_win()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if win ~= current_win then
+      vim.api.nvim_set_current_win(win)
+      return
+    end
+  end
+end, { desc = "Focus main code window" })
