@@ -117,27 +117,14 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-## EXTRA
-export PKG_CONFIG_PATH="/opt/homebrew/opt/libffi/lib/pkgconfig"
-export GDAL_LIBRARY_PATH="/opt/local/lib/libgdal.dylib"
-export GEOS_LIBRARY_PATH="/opt/local/lib/libgeos_c.dylib"
-ZSH_DISABLE_COMPFIX=true
-
 
 ####### PERSONAL #####
-
-XBREW_PATH="/usr/local/homebrew/bin"
 BREW_PATH="/opt/homebrew/bin"
-PSQL_PATH="/Applications/Postgres.app/Contents/Versions/latest/bin"
-JAVA_PATH="/usr/local/homebrew/opt/openjdk/bin"
 GO_PATH="/Users/julianbaumgartner/go/bin"
 VSCODE_PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin" 
 
 export PATH="$PATH:$GO_PATH:$VSCODE_PATH:$BREW_PATH"
 
-# useful Python C-library compliation flags
-export LDFLAGS="-L$(brew --prefix openssl)/lib -L$(brew --prefix zlib)/lib"
-export CPPFLAGS="-I$(brew --prefix openssl)/include -I$(brew --prefix zlib)/include"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
@@ -147,7 +134,6 @@ export NVM_DIR="$HOME/.nvm"
 function shellconf() {
         nvim ~/.zshrc && source ~/.zshrc
 }
-
 
 function vimconf() {
         cur_dir="$PWD"
@@ -272,7 +258,6 @@ extend-ignore = [\"E501\"]  # Ignore line length errors
 fix = true" >> pyproject.toml
 }
 
-
 function syncdot() {
         curr_dir=$(pwd)
         
@@ -289,28 +274,13 @@ function syncdot() {
         cd "$curr_dir"
 }
 
-function mkgitdir (){
-        mkdir -p -- "$1" &&
-        cd -P -- "$1" &&
-        git init --quiet  &&
-        touch .gitignore &&
-        mkdir src
-}
-
 function mkcd (){
         mkdir -p -- "$1" &&
         cd -P "$1"
 }
 
-
-function gitcom () {
-        git add . &&
-        git commit -m 'Update'
-}
-
 # ALIAS
 alias n="nvim ."
-alias xbrew='/usr/local/Homebrew/bin/brew'
 alias cdd='cd ../'
 alias cddd='cd ../../'
 alias cdddd='cd ../../../'
@@ -320,14 +290,7 @@ alias ga="git add"
 alias gaa="git add ."
 alias gr='git rebase -i HEAD~2'
 alias gcu='git commit -m "Update"'
-alias prettygit="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
-alias ll='lsd --all --long --header'
 alias ls='lsd --all --long --header'
-alias ltt='tree -a -s --filelimit 10'
-alias lt='lsd --all --long --header --inode --git --tree --level=3'
-alias runserv='python manage.py runserver'
-alias ddshell='python manage.py shell_plus --print-sql --ipython'
-alias dshell='python manage.py shell -i ipython'
 alias c='stty sane && clear'
 alias gitclear='git stash && git stash clear'
 alias gcoo='git switch $(git branch --all | sed 's/^..//' | fzf)'
