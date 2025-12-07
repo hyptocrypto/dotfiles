@@ -1,3 +1,6 @@
+local oil = require("oil")
+local actions = require("oil.actions")
+
 -- Helper function to get project root
 local function get_root_dir()
   local buf = vim.api.nvim_buf_get_name(0)
@@ -13,13 +16,34 @@ local function get_root_dir()
   return vim.loop.cwd()
 end
 
+local function parent_limited()
+  local root = get_root_dir()
+  local current_dir = oil.get_current_dir()
+
+  -- Normalize paths (remove trailing slash)
+  local function normalize(p)
+    return p and p:gsub("/+$", "")
+  end
+
+  root = normalize(root)
+  current_dir = normalize(current_dir)
+
+  -- If already at root, do nothing
+  if current_dir == root then
+    return
+  end
+
+  -- Otherwise call original parent action
+  return actions.parent.callback()
+end
+
 return {
   {
     "stevearc/oil.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
     config = function()
-      require("oil").setup({
+      oil.setup({
         -- Oil will take over directory buffers (e.g. `nvim .` or `:e src/`)
         default_file_explorer = true,
 
@@ -64,7 +88,7 @@ return {
           ["q"] = "actions.close",
           ["<C-c>"] = "actions.close",
           ["<C-r>"] = "actions.refresh",
-          ["-"] = "actions.parent",
+          ["-"] = parent_limited,
           ["_"] = "actions.open_cwd",
           ["`"] = "actions.cd",
           ["~"] = "actions.tcd",
@@ -131,14 +155,14 @@ return {
       {
         "<leader>o",
         function()
-          require("oil").toggle_float(get_root_dir())
+          oil.toggle_float(get_root_dir())
         end,
         desc = "Oil (project root)",
       },
       {
         "-",
         function()
-          require("oil").open()
+          oil.open()
         end,
         desc = "Oil (parent directory)",
       },
