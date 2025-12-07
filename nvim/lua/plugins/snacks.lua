@@ -219,6 +219,8 @@ return {
               "**/temp/**",
               "**/.DS_Store",
               "**/Thumbs.db",
+              "**/venv",
+              "**/.venv",
             },
           },
           files = {
@@ -243,6 +245,8 @@ return {
               "**/temp/**",
               "**/.DS_Store",
               "**/Thumbs.db",
+              "**/venv",
+              "**/.venv",
             },
           },
         },

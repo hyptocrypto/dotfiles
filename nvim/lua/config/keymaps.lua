@@ -311,27 +311,54 @@ vim.keymap.set("n", "M", function()
   end
 end, { desc = "Toggle macro recording (@q)" })
 
--- Focus on main code window (away from side panels like Oil)
 vim.keymap.set("n", "<leader>t", function()
-  -- Find the main code window (not Oil, not terminal, etc.)
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
+  local wins = vim.api.nvim_list_wins()
+
+  -- Whitelist of real programming language filetypes
+  local code_ft = {
+    go = true,
+    lua = true,
+    python = true,
+    bash = true,
+    sh = true,
+    zsh = true,
+    javascript = true,
+    javascriptreact = true,
+    typescript = true,
+    typescriptreact = true,
+    html = true,
+    css = true,
+    scss = true,
+    vue = true,
+    svelte = true,
+    rust = true,
+    c = true,
+    cpp = true,
+    java = true,
+    php = true,
+    ruby = true,
+    kotlin = true,
+    json = true,
+    yaml = true,
+    toml = true,
+    markdown = true, -- optional
+  }
+
+  for _, win in ipairs(wins) do
     local buf = vim.api.nvim_win_get_buf(win)
-    local buf_name = vim.api.nvim_buf_get_name(buf)
-    local filetype = vim.bo[buf].filetype
+    local bt = vim.bo[buf].buftype
+    local ft = vim.bo[buf].filetype
+    local name = vim.api.nvim_buf_get_name(buf)
 
-    -- Skip Oil buffers, terminals, and other special buffers
-    if vim.bo[buf].buftype ~= "terminal" and filetype ~= "oil" and not buf_name:match("oil://") and filetype ~= "" then -- Has a filetype (actual code file)
+    -- A code window must:
+    -- 1. be a "real" buffer (not terminal/help/etc.)
+    -- 2. have a supported code filetype
+    -- 3. have a filename on disk
+    if bt == "" and code_ft[ft] and name ~= "" then
       vim.api.nvim_set_current_win(win)
       return
     end
   end
 
-  -- Fallback: just go to the first window that's not the current one
-  local current_win = vim.api.nvim_get_current_win()
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if win ~= current_win then
-      vim.api.nvim_set_current_win(win)
-      return
-    end
-  end
-end, { desc = "Focus main code window" })
+  vim.notify("No code window found.", vim.log.levels.WARN)
+end, { desc = "Focus main code window" }) -- Focus on main code window (away from side panels like Oil)
