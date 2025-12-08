@@ -1,6 +1,3 @@
-local oil = require("oil")
-local actions = require("oil.actions")
-
 -- Helper function to get project root
 local function get_root_dir()
   local buf = vim.api.nvim_buf_get_name(0)
@@ -18,7 +15,7 @@ end
 
 local function parent_limited()
   local root = get_root_dir()
-  local current_dir = oil.get_current_dir()
+  local current_dir = require("oil").get_current_dir()
 
   -- Normalize paths (remove trailing slash)
   local function normalize(p)
@@ -34,7 +31,7 @@ local function parent_limited()
   end
 
   -- Otherwise call original parent action
-  return actions.parent.callback()
+  return require("oil.actions").parent.callback()
 end
 
 return {
@@ -43,7 +40,7 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
     config = function()
-      oil.setup({
+      require("oil").setup({
         -- Oil will take over directory buffers (e.g. `nvim .` or `:e src/`)
         default_file_explorer = true,
 
@@ -153,19 +150,24 @@ return {
     end,
     keys = {
       {
-        "<leader>o",
+        "<leader>e",
         function()
-          oil.toggle_float(get_root_dir())
+          require("oil").toggle_float(get_root_dir())
         end,
         desc = "Oil (project root)",
       },
       {
         "-",
         function()
-          oil.open()
+          require("oil").open()
         end,
         desc = "Oil (parent directory)",
       },
     },
+  },
+  -- Replace the default LazyVim file explorer (neo-tree) with Oil
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    enabled = false,
   },
 }

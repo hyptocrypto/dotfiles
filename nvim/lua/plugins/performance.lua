@@ -6,10 +6,4 @@ return {
       vim.g.startuptime_tries = 10
     end,
   },
-  {
-    "lewis6991/impatient.nvim",
-    config = function()
-      require("impatient").enable_profile()
-    end,
-  },
 }

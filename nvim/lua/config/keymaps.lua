@@ -290,6 +290,7 @@ vim.api.nvim_create_user_command("Gotest", run_nearest_go_test, {})
 vim.api.nvim_create_user_command("Gotestall", run_go_tests_in_file, {})
 vim.api.nvim_create_user_command("Gotestpackage", run_go_tests_in_package, {})
 vim.api.nvim_create_user_command("GoDebugTest", debug_go_test, {})
+vim.keymap.set("n", "<leader>dt", ":GoDebugTest<CR>", { desc = "Go Debug Test" })
 
 -- Shift+H to fold under cursor
 vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
