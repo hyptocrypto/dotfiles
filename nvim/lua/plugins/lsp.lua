@@ -21,10 +21,21 @@ return {
 
     servers = {
       -- Go linters (langserver)
+
       golangci_lint_ls = {
         cmd = { "golangci-lint-langserver" },
         filetypes = { "go", "gomod" },
-        root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
+
+        -- allow LazyVim to choose the correct project root:
+        -- (do NOT set root_dir here)
+        init_options = {
+          command = {
+            "/Users/julianbaumgartner/go/bin/golangci-lint",
+            "run",
+            "--out-format",
+            "json",
+          },
+        },
       },
 
       -- Vue (Volar)
