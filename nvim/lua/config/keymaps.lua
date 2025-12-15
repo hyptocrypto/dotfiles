@@ -320,10 +320,10 @@ vim.api.nvim_create_user_command("GoDebugTest", debug_go_test, {})
 vim.keymap.set("n", "<leader>dt", ":GoDebugTest<CR>", { desc = "Go Debug Test" })
 
 -- Shift+H to fold under cursor
-vim.keymap.set("n", "H", "zc", { desc = "Fold under cursor" })
+vim.keymap.set("n", "<Esc>h", "zc", { desc = "Fold under cursor" })
 
 -- Shift+L to unfold under cursor
-vim.keymap.set("n", "L", "zo", { desc = "Unfold under cursor" })
+vim.keymap.set("n", "<Esc>l", "zo", { desc = "Unfold under cursor" })
 
 -- Disable default macro recording on `q`
 vim.keymap.set("n", "q", "<Nop>")

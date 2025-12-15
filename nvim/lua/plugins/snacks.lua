@@ -63,6 +63,13 @@ return {
         desc = "Command History",
       },
       {
+        "<leader>r",
+        function()
+          Snacks.picker.resume()
+        end,
+        desc = "Resume last picker",
+      },
+      {
         "<leader>n",
         function()
           Snacks.notifier.show_history()
@@ -155,6 +162,11 @@ return {
       },
 
       picker = {
+        lsp = {
+          navic = { enabled = true },
+        },
+        show_context = true,
+        context_lines = 2,
         -- Custom layout without backdrop
         layouts = {
           default = {
