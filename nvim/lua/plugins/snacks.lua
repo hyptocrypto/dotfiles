@@ -28,6 +28,13 @@ return {
     "folke/snacks.nvim",
     keys = {
       {
+        "<leader>r",
+        function()
+          Snacks.picker.resume()
+        end,
+        desc = "Resume last picker",
+      },
+      {
         "<leader><space>",
         function()
           Snacks.picker.files()
