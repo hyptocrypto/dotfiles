@@ -259,19 +259,14 @@ fix = true" >> pyproject.toml
 }
 
 function syncdot() {
-        curr_dir=$(pwd)
-        
-        cd ~/dev/dotfiles
-	git checkout main
-        git pull
-
-        cp omz/.zshrc ~/.zshrc
-        rm -r  ~/.config/nvim
-        cp -r nvim ~/.config/
+    curr_dir=$(pwd)
+    cd ~/dev/dotfiles
+    git checkout main
+    git pull
+    cp omz/.zshrc ~/.zshrc
 	cp .wezterm.lua ~/.wezterm.lua
-        source ~/.zshrc
-
-        cd "$curr_dir"
+    source ~/.zshrc
+    cd "$curr_dir"
 }
 
 function mkcd (){
