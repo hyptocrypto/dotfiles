@@ -2,6 +2,33 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
+-- Shift+Enter to execute current SQL statement (like DBeaver)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "sql",
+  callback = function()
+    vim.keymap.set("n", "<S-CR>", function()
+      local cursor_line = vim.fn.line(".")
+      local total_lines = vim.fn.line("$")
+
+      local start_line = cursor_line
+      for i = cursor_line - 1, 1, -1 do
+        if vim.fn.getline(i):match(";%s*$") then break end
+        start_line = i
+      end
+
+      local end_line = cursor_line
+      for i = cursor_line, total_lines do
+        end_line = i
+        if vim.fn.getline(i):match(";%s*$") then break end
+      end
+
+      vim.cmd(string.format("%d,%dDB", start_line, end_line))
+    end, { buffer = true, desc = "Execute SQL statement" })
+
+    vim.keymap.set("v", "<S-CR>", ":DB<CR>", { buffer = true, desc = "Execute selected SQL" })
+  end,
+})
+
 -- Simplify changing variable names
 vim.keymap.set("n", "<leader>cn", ":let @/='\\<'.expand('<cword>').'\\>'<CR>cgn", { desc = "Change variable name" })
 
@@ -323,6 +350,7 @@ vim.keymap.set("n", "<leader>t", function()
     bash = true,
     sh = true,
     zsh = true,
+    sql = true,
     javascript = true,
     javascriptreact = true,
     typescript = true,
