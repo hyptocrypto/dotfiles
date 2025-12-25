@@ -328,3 +328,5 @@ bindkey -M vicmd '^M' expand_and_accept_cmd
 if [ -f "$HOME/.zshrc.local" ]; then
   source "$HOME/.zshrc.local"
 fi
+
+export PATH="$HOME/.local/bin:$PATH"
