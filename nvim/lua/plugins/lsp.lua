@@ -9,6 +9,37 @@ local vue_plugin = {
   configNamespace = "typescript",
 }
 
+-- Helper function to get golangci-lint command with version-appropriate flags
+local function get_golangci_lint_command()
+  local golangci_lint_path = "/Users/julianbaumgartner/go/bin/golangci-lint"
+
+  -- Get version output
+  local handle = io.popen(golangci_lint_path .. " --version 2>/dev/null")
+  local version_output = handle and handle:read("*a") or ""
+  if handle then
+    handle:close()
+  end
+
+  -- Parse major version (format: "golangci-lint has version 2.7.2 ..." or "version v1.55.2 ...")
+  local major = version_output:match("version v?(%d+)")
+  local major_num = tonumber(major) or 1
+
+  if major_num >= 2 then
+    -- Version 2.0+: use new output syntax
+    return {
+      golangci_lint_path,
+      "run",
+      "--output.json.path",
+      "stdout",
+      "--show-stats=false",
+      "--issues-exit-code=1",
+    }
+  else
+    -- Version < 2.0: use legacy --out-format flag
+    return { golangci_lint_path, "run", "--out-format", "json" }
+  end
+end
+
 -- Set rounded borders for LspInfo window
 require("lspconfig.ui.windows").default_options.border = "rounded"
 
@@ -29,12 +60,7 @@ return {
         -- allow LazyVim to choose the correct project root:
         -- (do NOT set root_dir here)
         init_options = {
-          command = {
-            "/Users/julianbaumgartner/go/bin/golangci-lint",
-            "run",
-            "--out-format",
-            "json",
-          },
+          command = get_golangci_lint_command(),
         },
       },
 
