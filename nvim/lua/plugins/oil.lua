@@ -152,9 +152,9 @@ return {
       {
         "<leader>e",
         function()
-          require("oil").toggle_float(get_root_dir())
+          require("oil").toggle_float()
         end,
-        desc = "Oil (project root)",
+        desc = "Oil (current file)",
       },
       {
         "-",
