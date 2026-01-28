@@ -1,0 +1,31 @@
+[sqlfluff]
+dialect = postgres
+templater = raw
+max_line_length = 120
+# Ignore parsing errors during formatting
+ignore = parsing,templating
+
+# Exclude common noisy rules
+exclude_rules = L003, L016, L028, L031, L034, L036, L044, L051, L059
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 4
+
+[sqlfluff:layout:type:comma]
+line_position = trailing
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = upper

@@ -61,3 +61,25 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
   desc = "Auto-fix Python files with ruff on save",
 })
+
+-- Disable LazyVim autoformat for Vue/JS/TS files (we use LspEslintFixAll instead)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "vue", "javascript", "javascriptreact", "typescript", "typescriptreact" },
+  callback = function()
+    vim.b.autoformat = false
+  end,
+  desc = "Disable LazyVim autoformat for Vue/JS/TS",
+})
+
+-- Auto-fix Vue/JS/TS files with ESLint LSP on save
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = { "*.vue", "*.js", "*.jsx", "*.ts", "*.tsx" },
+  callback = function()
+    -- Check if eslint LSP is attached to this buffer
+    local clients = vim.lsp.get_clients({ bufnr = 0, name = "eslint" })
+    if #clients > 0 then
+      vim.cmd("LspEslintFixAll")
+    end
+  end,
+  desc = "Auto-fix Vue/JS/TS files with ESLint LSP on save",
+})
