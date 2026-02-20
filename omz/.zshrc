@@ -181,7 +181,7 @@ function gcurr() {
 }
 
 #Gitlab MergeReqeust
-function makepr() {
+function makeprGL() {
         MAIN=$(gmain)
         CUR=$(gcurr)
         echo "$MAIN"
