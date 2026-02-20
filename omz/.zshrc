@@ -330,3 +330,5 @@ if [ -f "$HOME/.zshrc.local" ]; then
 fi
 
 export PATH="$HOME/.local/bin:$PATH"
+
+export XDG_CONFIG_HOME="$HOME/.config"
