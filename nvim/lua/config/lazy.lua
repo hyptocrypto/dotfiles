@@ -33,6 +33,7 @@ require("lazy").setup({
   -- Soft rounded UI for Lazy.nvim
   ui = {
     border = "rounded",
+    backdrop = 100,
   },
   performance = {
     rtp = {

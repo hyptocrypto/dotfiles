@@ -12,14 +12,18 @@ vim.api.nvim_create_autocmd("FileType", {
 
       local start_line = cursor_line
       for i = cursor_line - 1, 1, -1 do
-        if vim.fn.getline(i):match(";%s*$") then break end
+        if vim.fn.getline(i):match(";%s*$") then
+          break
+        end
         start_line = i
       end
 
       local end_line = cursor_line
       for i = cursor_line, total_lines do
         end_line = i
-        if vim.fn.getline(i):match(";%s*$") then break end
+        if vim.fn.getline(i):match(";%s*$") then
+          break
+        end
       end
 
       vim.cmd(string.format("%d,%dDB", start_line, end_line))
@@ -338,56 +342,3 @@ vim.keymap.set("n", "M", function()
     vim.cmd("normal! qq")
   end
 end, { desc = "Toggle macro recording (@q)" })
-
-vim.keymap.set("n", "<leader>t", function()
-  local wins = vim.api.nvim_list_wins()
-
-  -- Whitelist of real programming language filetypes
-  local code_ft = {
-    go = true,
-    lua = true,
-    python = true,
-    bash = true,
-    sh = true,
-    zsh = true,
-    sql = true,
-    javascript = true,
-    javascriptreact = true,
-    typescript = true,
-    typescriptreact = true,
-    html = true,
-    css = true,
-    scss = true,
-    vue = true,
-    svelte = true,
-    rust = true,
-    c = true,
-    cpp = true,
-    java = true,
-    php = true,
-    ruby = true,
-    kotlin = true,
-    json = true,
-    yaml = true,
-    toml = true,
-    markdown = true, -- optional
-  }
-
-  for _, win in ipairs(wins) do
-    local buf = vim.api.nvim_win_get_buf(win)
-    local bt = vim.bo[buf].buftype
-    local ft = vim.bo[buf].filetype
-    local name = vim.api.nvim_buf_get_name(buf)
-
-    -- A code window must:
-    -- 1. be a "real" buffer (not terminal/help/etc.)
-    -- 2. have a supported code filetype
-    -- 3. have a filename on disk
-    if bt == "" and code_ft[ft] and name ~= "" then
-      vim.api.nvim_set_current_win(win)
-      return
-    end
-  end
-
-  vim.notify("No code window found.", vim.log.levels.WARN)
-end, { desc = "Focus main code window" }) -- Focus on main code window (away from side panels like Oil)
