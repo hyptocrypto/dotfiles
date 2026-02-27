@@ -24,7 +24,18 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Returns the most recently created dbout buffer (highest buf number)
+local function find_latest_sql_query()
+  local base = vim.fn.stdpath("data") .. "/dadbod_ui"
+  local files = vim.fn.glob(base .. "/**/*.sql", false, true)
+  if #files == 0 then
+    return nil
+  end
+  table.sort(files, function(a, b)
+    return vim.fn.getftime(a) > vim.fn.getftime(b)
+  end)
+  return files[1]
+end
+
 local function find_dbout_buf()
   local latest = nil
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -36,24 +47,21 @@ local function find_dbout_buf()
 end
 
 local function save_db_state()
-  -- Save the dbout content from the buffer currently visible in a window,
-  -- which is always the most recent query result
-  if db_tab and vim.api.nvim_tabpage_is_valid(db_tab) then
-    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(db_tab)) do
-      local buf = vim.api.nvim_win_get_buf(win)
-      if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "dbout" then
-        saved_dbout_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-        break
-      end
+  if not db_tab or not vim.api.nvim_tabpage_is_valid(db_tab) then
+    return
+  end
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(db_tab)) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "dbout" then
+      saved_dbout_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      break
     end
-
-    -- Save which SQL script the user was editing
-    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(db_tab)) do
-      local buf = vim.api.nvim_win_get_buf(win)
-      if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "sql" then
-        last_sql_buf = buf
-        break
-      end
+  end
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(db_tab)) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "sql" then
+      last_sql_buf = buf
+      break
     end
   end
 end
@@ -85,7 +93,14 @@ local function show_dbout()
   end
 end
 
-local function find_connected_sql_buf()
+local function get_sql_buf_to_restore()
+  if last_sql_buf
+    and vim.api.nvim_buf_is_valid(last_sql_buf)
+    and vim.api.nvim_buf_is_loaded(last_sql_buf)
+    and vim.b[last_sql_buf].db
+    and vim.b[last_sql_buf].db ~= "" then
+    return last_sql_buf
+  end
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_valid(buf)
       and vim.api.nvim_buf_is_loaded(buf)
@@ -98,18 +113,6 @@ local function find_connected_sql_buf()
   return nil
 end
 
-local function get_sql_buf_to_restore()
-  if last_sql_buf
-    and vim.api.nvim_buf_is_valid(last_sql_buf)
-    and vim.api.nvim_buf_is_loaded(last_sql_buf)
-    and vim.b[last_sql_buf].db
-    and vim.b[last_sql_buf].db ~= "" then
-    return last_sql_buf
-  end
-  return find_connected_sql_buf()
-end
-
--- Navigate the DBUI tree to open "New query" under the first connection
 local function open_query_via_dbui()
   local dbui_buf = vim.api.nvim_get_current_buf()
   if vim.bo[dbui_buf].filetype ~= "dbui" then
@@ -165,7 +168,24 @@ local function toggle_db_mode()
     return
   end
 
-  vim.cmd("tabnew")
+  local sql_buf = get_sql_buf_to_restore()
+  local needs_tree = false
+
+  if sql_buf then
+    -- Reopen the exact buffer the user was in — no scratch buffer
+    vim.cmd("tab sb " .. sql_buf)
+  else
+    local query = find_latest_sql_query()
+    if query then
+      -- Open an existing SQL file directly — no scratch buffer
+      vim.cmd("tabedit " .. vim.fn.fnameescape(query))
+    else
+      -- Nothing exists yet, DBUI tree will create the first query
+      vim.cmd("tabnew")
+      needs_tree = true
+    end
+  end
+
   db_tab = vim.api.nvim_get_current_tabpage()
   vim.cmd("DBUI")
 
@@ -174,15 +194,12 @@ local function toggle_db_mode()
       return
     end
 
-    local sql_buf = get_sql_buf_to_restore()
-    if sql_buf then
+    if needs_tree then
+      open_query_via_dbui()
+    else
       vim.cmd("wincmd l")
-      vim.api.nvim_win_set_buf(0, sql_buf)
       show_dbout()
-      return
     end
-
-    open_query_via_dbui()
   end, 200)
 end
 
