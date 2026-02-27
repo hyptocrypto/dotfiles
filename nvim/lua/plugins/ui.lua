@@ -1,10 +1,6 @@
 -- Soft & Rounded UI Enhancements
 return {
 
-  {
-    { "akinsho/bufferline.nvim", enabled = false },
-  },
-
   -- Which-key with rounded borders
   {
     "folke/which-key.nvim",

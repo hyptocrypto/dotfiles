@@ -3,6 +3,7 @@ function ToggleNeoTreeOrCode()
   local neotree_winid = nil
   local code_winid = nil
   local dbui_winid = nil
+  local dbout_winid = nil
   local current_winid = vim.fn.winnr()
 
   -- Iterate through all windows
@@ -15,6 +16,8 @@ function ToggleNeoTreeOrCode()
       neotree_winid = winnr
     elseif filetype == "dbui" then
       dbui_winid = winnr
+    elseif filetype == "dbout" then
+      dbout_winid = winnr
     elseif buftype == "" then
       code_winid = winnr
     end
@@ -38,6 +41,10 @@ function ToggleNeoTreeOrCode()
       vim.cmd(code_winid .. "wincmd w")
     elseif neotree_winid then
       vim.cmd(neotree_winid .. "wincmd w")
+    end
+  elseif current_winid == dbout_winid then
+    if code_winid then
+      vim.cmd(code_winid .. "wincmd w")
     end
   else
     -- Fallback: go to code window if not in any known window
