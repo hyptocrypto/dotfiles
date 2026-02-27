@@ -116,6 +116,7 @@ return {
     "mason-org/mason.nvim",
     opts = {
       ui = {
+        backdrop = 100,
         border = "rounded",
         icons = {
           package_installed = "●",
@@ -194,6 +195,25 @@ return {
         delete = { text = "│" },
         topdelete = { text = "│" },
         changedelete = { text = "│" },
+      },
+    },
+  },
+
+  -- Bufferline with rounded/sloped tab separators
+  {
+    "akinsho/bufferline.nvim",
+    opts = {
+      options = {
+        separator_style = "slant",
+        indicator = {
+          style = "icon",
+          icon = "▎",
+        },
+        show_buffer_close_icons = false,
+        show_close_icon = false,
+        modified_icon = "●",
+        left_trunc_marker = "",
+        right_trunc_marker = "",
       },
     },
   },
