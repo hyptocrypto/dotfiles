@@ -9,37 +9,6 @@ local vue_plugin = {
   configNamespace = "typescript",
 }
 
--- Helper function to get golangci-lint command with version-appropriate flags
-local function get_golangci_lint_command()
-  local golangci_lint_path = "/Users/julianbaumgartner/go/bin/golangci-lint"
-
-  -- Get version output
-  local handle = io.popen(golangci_lint_path .. " --version 2>/dev/null")
-  local version_output = handle and handle:read("*a") or ""
-  if handle then
-    handle:close()
-  end
-
-  -- Parse major version (format: "golangci-lint has version 2.7.2 ..." or "version v1.55.2 ...")
-  local major = version_output:match("version v?(%d+)")
-  local major_num = tonumber(major) or 1
-
-  if major_num >= 2 then
-    -- Version 2.0+: use new output syntax
-    return {
-      golangci_lint_path,
-      "run",
-      "--output.json.path",
-      "stdout",
-      "--show-stats=false",
-      "--issues-exit-code=1",
-    }
-  else
-    -- Version < 2.0: use legacy --out-format flag
-    return { golangci_lint_path, "run", "--out-format", "json" }
-  end
-end
-
 -- Set rounded borders for LspInfo window
 require("lspconfig.ui.windows").default_options.border = "rounded"
 
@@ -51,19 +20,7 @@ return {
     single_file_support = true,
 
     servers = {
-      -- Go linters (langserver)
-
-      golangci_lint_ls = {
-        cmd = { "golangci-lint-langserver" },
-        filetypes = { "go", "gomod" },
-
-        -- allow LazyVim to choose the correct project root:
-        -- (do NOT set root_dir here)
-        init_options = {
-          command = get_golangci_lint_command(),
-        },
-      },
-
+      golangci_lint_ls = false,
       -- Vue (Volar)
       vue_ls = {
         filetypes = { "vue" },
@@ -181,7 +138,7 @@ return {
       -- YAML
       yamlls = {},
 
-      -- Go LSP with optimized config
+      -- Go LSP — strict analyses to replace golangci-lint
       gopls = {
         settings = {
           gopls = {
@@ -190,10 +147,10 @@ return {
               gc_details = false,
               generate = true,
               regenerate_cgo = true,
-              run_govulncheck = false,
+              run_govulncheck = true,
               test = true,
               tidy = true,
-              upgrade_dependency = false,
+              upgrade_dependency = true,
               vendor = false,
             },
             hints = {
@@ -206,25 +163,52 @@ return {
               rangeVariableTypes = false,
             },
             analyses = {
+              -- Bug detection
               nilness = true,
-              unusedparams = true,
+              shadow = true,
               unusedwrite = true,
-              fieldalignment = false,
-              shadow = false,
               unusedvariable = true,
-              unusedresult = true,
               unreachable = true,
-              loopclosure = true,
               lostcancel = true,
+              loopclosure = true,
+              atomicalign = true,
+              copylocks = true,
+              httpresponse = true,
+              errorsas = true,
+              testinggoroutine = true,
+              appends = true,
+              defers = true,
+              slog = true,
+              -- Code quality
+              unusedparams = true,
+              unusedresult = true,
               printf = true,
               ifaceassert = true,
               stringintconv = true,
-              atomicalign = false,
+              bools = true,
+              assign = true,
+              directive = true,
+              structtag = true,
+              tests = true,
+              timeformat = true,
+              embeddirective = true,
+              stdmethods = true,
+              useany = true,
+              sortslice = true,
+              simplifyrange = true,
+              simplifyslice = true,
+              simplifycompositelit = true,
+              infertypeargs = true,
+              -- Quick fixes
               undeclaredname = true,
               fillreturns = true,
               nonewvars = true,
-              stacktrace = false,
+              fillstruct = true,
+              stubmethods = true,
+              -- Intentionally off (too noisy)
+              fieldalignment = false,
             },
+            vulncheck = "Imports",
             usePlaceholders = true,
             completeUnimported = true,
             directoryFilters = {
