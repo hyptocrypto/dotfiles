@@ -1,70 +1,48 @@
+local function close_neotree()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].filetype == "neo-tree" then
+      vim.cmd("Neotree close")
+      return
+    end
+  end
+end
+
 return {
+  {
+    "igorlfs/nvim-dap-view",
+    lazy = false,
+    opts = {
+      winbar = {
+        sections = { "watches", "scopes", "breakpoints", "threads", "repl" },
+        default_section = "scopes",
+        controls = {
+          enabled = true,
+          position = "right",
+        },
+      },
+      windows = {
+        position = "right",
+        size = 0.5,
+        terminal = {
+          hide = { "go" },
+        },
+      },
+      auto_toggle = false,
+    },
+  },
   {
     "mfussenegger/nvim-dap",
     event = "VeryLazy",
     dependencies = {
-      "rcarriga/nvim-dap-ui",
+      "igorlfs/nvim-dap-view",
       "leoluz/nvim-dap-go",
-      "nvim-neotest/nvim-nio",
     },
     config = function()
       local dap = require("dap")
-      local dapui = require("dapui")
+      local dapview = require("dap-view")
       require("dap-go").setup()
 
-      -- Soft rounded UI configuration
-      dapui.setup({
-        -- Rounded floating windows
-        floating = {
-          border = "rounded",
-          mappings = {
-            close = { "q", "<Esc>" },
-          },
-        },
-        -- Softer icons
-        icons = {
-          expanded = "",
-          collapsed = "",
-          current_frame = "●",
-        },
-        controls = {
-          icons = {
-            pause = "",
-            play = "",
-            step_into = "",
-            step_over = "",
-            step_out = "",
-            step_back = "",
-            run_last = "",
-            terminate = "",
-            disconnect = "",
-          },
-        },
-        layouts = {
-          {
-            elements = {
-              { id = "stacks", size = 0.3 },
-              { id = "breakpoints", size = 0.3 },
-            },
-            size = 30,
-            position = "left",
-          },
-          {
-            elements = {
-              { id = "watches", size = 1 },
-            },
-            size = 10,
-            position = "bottom",
-          },
-        },
-        -- Rounded window options
-        render = {
-          indent = 1,
-          max_value_lines = 100,
-        },
-      })
-
-      -- Clean up duplicate configs
       local unique_configs = {}
       local seen = {}
 
@@ -74,7 +52,7 @@ return {
           seen[config.name] = true
         end
       end
-      -- Add custom headless attach config
+
       table.insert(unique_configs, 1, {
         name = "Attach To Headless (127.0.0.1:2346)",
         type = "go",
@@ -94,19 +72,35 @@ return {
 
       dap.configurations.go = unique_configs
 
-      -- Auto open/close UI when debugging starts/stops
-      dap.listeners.after.event_initialized["dapui_config"] = function()
-        dapui.toggle({ reset = true })
+      dap.listeners.after.event_initialized["dapview_config"] = function()
+        close_neotree()
+        dapview.open()
       end
-      dap.listeners.before.event_terminated["dapui_config"] = function()
-        dapui.close()
+      dap.listeners.before.event_terminated["dapview_config"] = function()
+        close_neotree()
+        dapview.close(true)
       end
-      dap.listeners.before.event_exited["dapui_config"] = function()
-        dapui.close()
+      dap.listeners.before.event_exited["dapview_config"] = function()
+        close_neotree()
+        dapview.close(true)
       end
-      dap.listeners.after.event_stopped["dapui_config"] = function()
-        dapui.open()
-      end
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "dap-view", "dap-view-term", "dap-repl" },
+        callback = function(args)
+          local keymaps = {
+            { "<Leader>dc", dap.continue, "Start/Continue Debugging" },
+            { "<Leader>dn", dap.step_over, "Step Over" },
+            { "<Leader>di", dap.step_into, "Step Into" },
+            { "<Leader>do", dap.step_out, "Step Out" },
+            { "<Leader>db", dap.toggle_breakpoint, "Toggle Breakpoint" },
+            { "<Leader>df", dap.focus_frame, "Focus" },
+          }
+          for _, km in ipairs(keymaps) do
+            vim.keymap.set("n", km[1], km[2], { buffer = args.buf, desc = km[3] })
+          end
+        end,
+      })
     end,
 
     keys = function()
@@ -116,7 +110,8 @@ return {
         {
           "<Leader>du",
           function()
-            require("dapui").toggle({ reset = true })
+            close_neotree()
+            require("dap-view").toggle()
           end,
           desc = "Toggle Debug UI",
         },
