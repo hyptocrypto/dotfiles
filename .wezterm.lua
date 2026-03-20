@@ -5,7 +5,7 @@ config.font = wezterm.font("JetBrains Mono", { weight = "DemiBold" })
 config.window_background_opacity = 0.9 -- Adjust between 0.1 (more transparent) to 1.0 (opaque)
 config.macos_window_background_blur = 20 -- Only for macOS, adjust for blur strength
 config.max_fps = 120
-config.enable_tab_bar = true
+config.enable_tab_bar = false
 config.enable_scroll_bar = true
 config.font_size = 15
 config.color_scheme = "nord"
@@ -80,4 +80,45 @@ config.keys = {
 		end),
 	},
 }
+
+-- global counter used to "debounce" hide timers
+wezterm.GLOBAL = wezterm.GLOBAL or {}
+wezterm.GLOBAL._tabbar_hide_seq = wezterm.GLOBAL._tabbar_hide_seq or 0
+
+local function show_tab_bar_temporarily(window, seconds)
+	seconds = seconds or 1.0
+
+	-- bump sequence; only the latest timer will be allowed to hide the tab bar
+	wezterm.GLOBAL._tabbar_hide_seq = wezterm.GLOBAL._tabbar_hide_seq + 1
+	local my_seq = wezterm.GLOBAL._tabbar_hide_seq
+
+	local overrides = window:get_config_overrides() or {}
+	if overrides.enable_tab_bar ~= true then
+		overrides.enable_tab_bar = true
+		window:set_config_overrides(overrides)
+	end
+
+	wezterm.time.call_after(seconds, function()
+		-- if another keypress happened since we scheduled, do nothing
+		if wezterm.GLOBAL._tabbar_hide_seq ~= my_seq then
+			return
+		end
+		local o = window:get_config_overrides() or {}
+		o.enable_tab_bar = false
+		window:set_config_overrides(o)
+	end)
+end
+
+config.keys = config.keys or {}
+
+-- Your Shift+Escape cycles to next tab AND shows tab bar briefly
+table.insert(config.keys, {
+	key = "Escape",
+	mods = "SHIFT",
+	action = wezterm.action_callback(function(window, pane)
+		show_tab_bar_temporarily(window, 2.0)
+		window:perform_action(wezterm.action.ActivateTabRelative(1), pane)
+	end),
+})
+
 return config
