@@ -6,7 +6,7 @@
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.templ",
   callback = function()
-    vim.lsp.buf.format({ async = true })
+    vim.lsp.buf.format({ async = false })
   end,
   desc = "Format templ files on save",
 })
@@ -69,6 +69,34 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.b.autoformat = false
   end,
   desc = "Disable LazyVim autoformat for Vue/JS/TS",
+})
+
+-- SQL: Shift+Enter executes current statement under cursor (like DBeaver)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "sql",
+  callback = function()
+    vim.keymap.set("n", "<S-CR>", function()
+      local cursor_line = vim.fn.line(".")
+      local total_lines = vim.fn.line("$")
+      local start_line = cursor_line
+      for i = cursor_line - 1, 1, -1 do
+        if vim.fn.getline(i):match(";%s*$") then
+          break
+        end
+        start_line = i
+      end
+      local end_line = cursor_line
+      for i = cursor_line, total_lines do
+        end_line = i
+        if vim.fn.getline(i):match(";%s*$") then
+          break
+        end
+      end
+      vim.cmd(string.format("%d,%dDB", start_line, end_line))
+    end, { buffer = true, desc = "Execute SQL statement" })
+    vim.keymap.set("v", "<S-CR>", ":DB<CR>", { buffer = true, desc = "Execute selected SQL" })
+  end,
+  desc = "SQL keymaps",
 })
 
 -- Auto-fix Vue/JS/TS files with ESLint LSP on save

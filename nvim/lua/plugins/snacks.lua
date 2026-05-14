@@ -1,26 +1,19 @@
 -- Always grep from repository root
 local function project_root()
   local buf = vim.api.nvim_buf_get_name(0)
-  local start = (buf ~= "" and vim.fs.dirname(buf)) or vim.loop.cwd()
-  if vim.system then
-    local res = vim.system({ "git", "-C", start, "rev-parse", "--show-toplevel" }, { text = true }):wait()
-    if res.code == 0 then
-      local path = (res.stdout or ""):gsub("%s+$", "")
-      if path ~= "" then
-        return path
-      end
-    end
-  else
-    local out = vim.fn.system({ "git", "-C", start, "rev-parse", "--show-toplevel" })
-    if vim.v.shell_error == 0 and type(out) == "string" and out ~= "" then
-      return out:gsub("%s+$", "")
+  local start = (buf ~= "" and vim.fs.dirname(buf)) or vim.uv.cwd()
+  local res = vim.system({ "git", "-C", start, "rev-parse", "--show-toplevel" }, { text = true }):wait()
+  if res.code == 0 then
+    local path = (res.stdout or ""):gsub("%s+$", "")
+    if path ~= "" then
+      return path
     end
   end
   local ok, util = pcall(require, "lazyvim.util")
   if ok then
     return util.root()
   end
-  return vim.loop.cwd()
+  return vim.uv.cwd()
 end
 
 return {
@@ -61,13 +54,6 @@ return {
           Snacks.picker.command_history()
         end,
         desc = "Command History",
-      },
-      {
-        "<leader>r",
-        function()
-          Snacks.picker.resume()
-        end,
-        desc = "Resume last picker",
       },
       {
         "<leader>n",
