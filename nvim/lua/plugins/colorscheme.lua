@@ -83,5 +83,12 @@ return {
     vim.api.nvim_set_hl(0, "SnacksInputNormal", { bg = bg_hex })
     vim.api.nvim_set_hl(0, "SnacksInputBorder", { bg = bg_hex, fg = snacks_border })
     vim.api.nvim_set_hl(0, "SnacksInputTitle", { bg = bg_hex, fg = "#c9d1d9", bold = true })
+
+    -- nvim-dap-view: fix highlight groups that resolve to default text color in github_dark
+    -- Variable names (#ffa657 = orange, same as @type) and scope/section headers (#d2a8ff = purple, bold)
+    vim.api.nvim_set_hl(0, "NvimDapViewWatchExpr", { fg = "#ffa657" })
+    vim.api.nvim_set_hl(0, "NvimDapViewThread", { fg = "#d2a8ff", bold = true })
+    -- DapBreakpoint is not defined by github_dark, so define it and the groups that depend on it
+    vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#ff7b72" })
   end,
 }

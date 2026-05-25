@@ -20,70 +20,19 @@ return {
   {
     "folke/snacks.nvim",
     keys = {
-      {
-        "<leader>r",
-        function()
-          Snacks.picker.resume()
-        end,
-        desc = "Resume last picker",
-      },
-      {
-        "<leader><space>",
-        function()
-          Snacks.picker.files()
-        end,
-        desc = "Find Files (Project)",
-      },
-      {
-        "<leader>,",
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = "Buffers",
-      },
-      {
-        "<leader>/",
-        function()
-          Snacks.picker.grep()
-        end,
-        desc = "Grep (Project)",
-      },
-      {
-        "<leader>:",
-        function()
-          Snacks.picker.command_history()
-        end,
-        desc = "Command History",
-      },
+      -- Picker keys moved to fff.nvim. Uncomment to restore snacks picker.
+      -- { "<leader>r", function() Snacks.picker.resume() end, desc = "Resume last picker" },
+      -- { "<leader><space>", function() Snacks.picker.files() end, desc = "Find Files (Project)" },
+      -- { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
+      -- { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep (Project)" },
+      -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
+      -- { "<leader>gd", function() Snacks.picker.git_diff({ ... }) end, desc = "Git Diff" },
       {
         "<leader>n",
         function()
           Snacks.notifier.show_history()
         end,
         desc = "Notification History",
-      },
-      {
-        "<leader>gd",
-        function()
-          Snacks.picker.git_diff({
-            multi = false,
-            win = {
-              input = {
-                keys = {
-                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
-                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
-                },
-              },
-              list = {
-                keys = {
-                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
-                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
-                },
-              },
-            },
-          })
-        end,
-        desc = "Git Diff (no multi)",
       },
     },
 
@@ -148,6 +97,7 @@ return {
       },
 
       picker = {
+        enabled = false,
         lsp = {
           navic = { enabled = true },
         },

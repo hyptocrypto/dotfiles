@@ -165,10 +165,10 @@ return {
             analyses = {
               -- Bug detection
               nilness = true,
-              shadow = false,        -- expensive graph analysis
+              shadow = false, -- expensive graph analysis
               unusedwrite = true,
-              unusedvariable = false, -- quadratic on large dep graphs
-              unreachable = false,   -- expensive graph traversal
+              unusedvariable = true, -- quadratic on large dep graphs
+              unreachable = false, -- expensive graph traversal
               lostcancel = true,
               loopclosure = true,
               atomicalign = true,
@@ -180,7 +180,7 @@ return {
               defers = true,
               slog = true,
               -- Code quality
-              unusedparams = false,  -- quadratic on large dep graphs
+              unusedparams = false, -- quadratic on large dep graphs
               unusedresult = true,
               printf = true,
               ifaceassert = true,
@@ -223,7 +223,7 @@ return {
               "-testdata",
             },
             semanticTokens = false, -- expensive on large files
-            staticcheck = false,    -- 40+ analyzers; major perf hog on large repos
+            staticcheck = false, -- 40+ analyzers; major perf hog on large repos
             experimentalPostfixCompletions = true,
           },
         },
