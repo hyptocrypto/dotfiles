@@ -37,6 +37,9 @@ return {
     },
 
     opts = {
+      -- Route vim.ui.select (DAP config picker, code actions, etc.) through snacks
+      ui_select = {},
+
       -- Soft rounded styles for all Snacks components
       styles = {
         -- Notification style
@@ -97,7 +100,6 @@ return {
       },
 
       picker = {
-        enabled = false,
         lsp = {
           navic = { enabled = true },
         },
@@ -152,6 +154,16 @@ return {
         },
         formatters = {},
         sources = {
+          git_diff = {
+            win = {
+              input = {
+                keys = {
+                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
+                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
+                },
+              },
+            },
+          },
           grep = {
             hidden = true,
             ignored = true,

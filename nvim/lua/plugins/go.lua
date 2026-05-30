@@ -51,19 +51,33 @@ return {
 
     local function run_go_test_command(cmd, success_title, fail_title)
       local file_dir = vim.fn.expand("%:p:h")
-      local timeout = 5000
-      vim.notify("Running: " .. cmd, vim.log.levels.INFO, { title = "Go Test", timeout = 2000 })
+      local spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+      local frame = 0
+      local notif_id = "go-test"
+
+      local timer = vim.uv.new_timer()
+      timer:start(0, 80, vim.schedule_wrap(function()
+        frame = (frame % #spinner) + 1
+        vim.notify(spinner[frame] .. " " .. cmd, vim.log.levels.INFO, {
+          title = "Go Test",
+          id = notif_id,
+          timeout = false,
+        })
+      end))
+
       vim.system({ "sh", "-c", "cd " .. file_dir .. " && " .. cmd }, { text = true }, function(result)
         vim.schedule(function()
+          timer:stop()
+          timer:close()
           local output_str = result.stdout or ""
           if result.stderr and result.stderr ~= "" then
             output_str = output_str .. "\n" .. result.stderr
           end
           if result.code == 0 then
-            vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
+            vim.notify(output_str, vim.log.levels.INFO, { title = success_title, id = notif_id, timeout = 5000 })
           else
             vim.notify("Error running go test:\n" .. output_str, vim.log.levels.ERROR,
-              { title = fail_title, timeout = timeout })
+              { title = fail_title, id = notif_id, timeout = 5000 })
           end
         end)
       end)

@@ -34,6 +34,9 @@ vim.opt.updatetime = 250 -- Faster completion
 vim.opt.timeoutlen = 300 -- Faster key sequence timeout
 vim.opt.redrawtime = 1500 -- Allow more time for redrawing
 
+-- Rounded borders for all floating windows (fff, LSP hover, etc.)
+vim.opt.winborder = "rounded"
+
 -- Better scrolling performance
 vim.opt.smoothscroll = true
 vim.opt.scrolloff = 8
