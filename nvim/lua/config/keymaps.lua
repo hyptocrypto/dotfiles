@@ -53,7 +53,14 @@ local function toggle_breakpoint()
     require("dap").toggle_breakpoint()
   end
 end
-vim.keymap.set("c", "bb", toggle_breakpoint, { desc = "Toggle breakpoint" })
+vim.keymap.set("c", "bb", function()
+  vim.schedule(function()
+    toggle_breakpoint()
+  end)
+
+  return "<C-c>"
+end, { expr = true })
+-- vim.keymap.set("c", "bb", toggle_breakpoint, { desc = "Toggle breakpoint" })
 
 -- ============================================================================
 -- Python Test Helpers
@@ -78,8 +85,11 @@ local function run_pytest_command(cmd, success_title, fail_title)
   if vim.fn.filereadable(venv_path .. "/bin/activate") == 1 or vim.fn.isdirectory(venv_path) == 1 then
     cmd = venv_path .. "/bin/python -m " .. cmd
   else
-    vim.notify("No .venv found in the project root!", vim.log.levels.WARN,
-      { title = "Virtual Environment Warning", timeout = timeout })
+    vim.notify(
+      "No .venv found in the project root!",
+      vim.log.levels.WARN,
+      { title = "Virtual Environment Warning", timeout = timeout }
+    )
     return
   end
 
@@ -93,8 +103,11 @@ local function run_pytest_command(cmd, success_title, fail_title)
       if result.code == 0 then
         vim.notify(output_str, vim.log.levels.INFO, { title = success_title, timeout = timeout })
       else
-        vim.notify("Error running pytest:\n" .. output_str, vim.log.levels.ERROR,
-          { title = fail_title, timeout = timeout })
+        vim.notify(
+          "Error running pytest:\n" .. output_str,
+          vim.log.levels.ERROR,
+          { title = fail_title, timeout = timeout }
+        )
       end
     end)
   end)
