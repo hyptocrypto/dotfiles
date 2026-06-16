@@ -6,6 +6,7 @@ return {
       sql = { "sqlfluff" },
       pgsql = { "sqlfluff" },
       go = {},
+      markdown = {}, -- disable markdownlint-cli2 (too noisy); marksman + ltex handle prose
     })
 
     opts.linters = vim.tbl_deep_extend("force", opts.linters or {}, {

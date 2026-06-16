@@ -34,9 +34,16 @@ vim.opt.updatetime = 250 -- Faster completion
 vim.opt.timeoutlen = 300 -- Faster key sequence timeout
 vim.opt.redrawtime = 1500 -- Allow more time for redrawing
 
+-- Rounded borders for all floating windows (fff, LSP hover, etc.)
+vim.opt.winborder = "rounded"
+
 -- Better scrolling performance
 vim.opt.smoothscroll = true
-vim.opt.scrolloff = 8 -- Keep 8 lines visible when scrolling
+vim.opt.scrolloff = 8
+
+-- Cursor motion wrapping
+vim.opt.backspace = { "eol", "start", "indent" }
+vim.opt.whichwrap:append("<,>,h,l")
 
 -- Optimize for large files
 vim.opt.synmaxcol = 240 -- Don't highlight long lines
@@ -48,20 +55,8 @@ vim.opt.hlsearch = true
 vim.opt.incsearch = true
 
 -- ============================================================================
--- SOFT & ROUNDED UI SETTINGS
+-- DIAGNOSTICS
 -- ============================================================================
-
--- Rounded border characters for a softer look
-local border = "rounded"
-
--- LSP floating window borders (hover, signature help, etc.)
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = border,
-})
-
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-  border = border,
-})
 
 -- Diagnostic floating window config
 vim.diagnostic.config({

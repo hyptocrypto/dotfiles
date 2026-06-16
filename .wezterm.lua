@@ -1,12 +1,16 @@
 local wezterm = require("wezterm")
 local config = {}
 
-config.font = wezterm.font("JetBrains Mono", { weight = "DemiBold" })
-config.window_background_opacity = 0.9 -- Adjust between 0.1 (more transparent) to 1.0 (opaque)
-config.macos_window_background_blur = 20 -- Only for macOS, adjust for blur strength
+config.font = wezterm.font("JetBrains Mono", { weight = "Regular" })
+config.freetype_load_target = "Light"
+config.freetype_render_target = "HorizontalLcd"
+config.foreground_text_hsb = { brightness = 0.9, saturation = 1.0, hue = 1.0 }
+config.window_background_opacity = 0.9
+config.macos_window_background_blur = 20
 config.max_fps = 120
 config.enable_tab_bar = false
-config.enable_scroll_bar = true
+config.enable_scroll_bar = false
+config.unicode_version = 14
 config.font_size = 15
 config.color_scheme = "nord"
 config.inactive_pane_hsb = {

@@ -265,7 +265,9 @@ function syncdot() {
     git checkout main
     git pull
     cp omz/.zshrc ~/.zshrc
-	cp .wezterm.lua ~/.wezterm.lua
+    cp .wezterm.lua ~/.wezterm.lua
+    cp .gitconfig ~/.gitconfig
+    cp gitignore_global ~/.gitignore_global
     source ~/.zshrc
     cd "$curr_dir"
 }
@@ -274,6 +276,92 @@ function mkcd (){
         mkdir -p -- "$1" &&
         cd -P "$1"
 }
+
+unalias gwt 2>/dev/null
+function gwt() {
+    local cmd="${1:-ls}"
+    shift 2>/dev/null || true
+
+    local root
+    root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "Not in a git repo"; return 1; }
+
+    case "$cmd" in
+        add)
+            local branch="${1:?Usage: gwt add <branch> [base]}"
+            local base="${2:-$(git symbolic-ref --short HEAD 2>/dev/null)}"
+            local wt_dir="$root/.worktrees/$branch"
+            if git show-ref --verify --quiet "refs/heads/$branch"; then
+                git worktree add "$wt_dir" "$branch"
+            else
+                git worktree add -b "$branch" "$wt_dir" "$base"
+            fi && echo "→ $wt_dir"
+            ;;
+        rm)
+            local branch="${1:?Usage: gwt rm <branch>}"
+            local wt_dir="$root/.worktrees/$branch"
+            git worktree remove "$wt_dir" && git branch -d "$branch"
+            ;;
+        go)
+            local wt_dir
+            if [[ -n "$1" ]]; then
+                wt_dir="$root/.worktrees/$1"
+            else
+                wt_dir=$(git worktree list --porcelain \
+                    | grep "^worktree " | awk '{print $2}' \
+                    | grep "/.worktrees/" \
+                    | fzf --prompt="worktree> " --with-nth=-1 --delimiter='/')
+                [[ -z "$wt_dir" ]] && return 0
+            fi
+            cd "$wt_dir"
+            ;;
+        ls)
+            git worktree list
+            ;;
+        *)
+            echo "Usage: gwt <add <branch> [base] | rm <branch> | go [branch] | ls>"
+            ;;
+    esac
+}
+
+function _gwt() {
+    local root
+    root="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+    local -a worktrees
+    if [[ -n "$root" && -d "$root/.worktrees" ]]; then
+        worktrees=($(ls "$root/.worktrees" 2>/dev/null))
+    fi
+
+    local -a branches
+    branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+
+    _arguments \
+        '1: :->cmd' \
+        '2: :->arg1' \
+        '3: :->arg2'
+
+    case $state in
+        cmd)
+            _values 'subcommand' \
+                'add[create worktree and branch]' \
+                'rm[remove worktree and delete branch]' \
+                'go[cd into a worktree]' \
+                'ls[list all worktrees]'
+            ;;
+        arg1)
+            case $words[2] in
+                rm|go) _values 'worktree' $worktrees ;;
+                add)   ;;
+            esac
+            ;;
+        arg2)
+            case $words[2] in
+                add) _values 'base branch' $branches ;;
+            esac
+            ;;
+    esac
+}
+compdef _gwt gwt
 
 # ALIAS
 alias n="nvim ."

@@ -1,74 +1,32 @@
 -- Always grep from repository root
 local function project_root()
   local buf = vim.api.nvim_buf_get_name(0)
-  local start = (buf ~= "" and vim.fs.dirname(buf)) or vim.loop.cwd()
-  if vim.system then
-    local res = vim.system({ "git", "-C", start, "rev-parse", "--show-toplevel" }, { text = true }):wait()
-    if res.code == 0 then
-      local path = (res.stdout or ""):gsub("%s+$", "")
-      if path ~= "" then
-        return path
-      end
-    end
-  else
-    local out = vim.fn.system({ "git", "-C", start, "rev-parse", "--show-toplevel" })
-    if vim.v.shell_error == 0 and type(out) == "string" and out ~= "" then
-      return out:gsub("%s+$", "")
+  local start = (buf ~= "" and vim.fs.dirname(buf)) or vim.uv.cwd()
+  local res = vim.system({ "git", "-C", start, "rev-parse", "--show-toplevel" }, { text = true }):wait()
+  if res.code == 0 then
+    local path = (res.stdout or ""):gsub("%s+$", "")
+    if path ~= "" then
+      return path
     end
   end
   local ok, util = pcall(require, "lazyvim.util")
   if ok then
     return util.root()
   end
-  return vim.loop.cwd()
+  return vim.uv.cwd()
 end
 
 return {
   {
     "folke/snacks.nvim",
     keys = {
-      {
-        "<leader>r",
-        function()
-          Snacks.picker.resume()
-        end,
-        desc = "Resume last picker",
-      },
-      {
-        "<leader><space>",
-        function()
-          Snacks.picker.files()
-        end,
-        desc = "Find Files (Project)",
-      },
-      {
-        "<leader>,",
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = "Buffers",
-      },
-      {
-        "<leader>/",
-        function()
-          Snacks.picker.grep()
-        end,
-        desc = "Grep (Project)",
-      },
-      {
-        "<leader>:",
-        function()
-          Snacks.picker.command_history()
-        end,
-        desc = "Command History",
-      },
-      {
-        "<leader>r",
-        function()
-          Snacks.picker.resume()
-        end,
-        desc = "Resume last picker",
-      },
+      -- Picker keys moved to fff.nvim. Uncomment to restore snacks picker.
+      -- { "<leader>r", function() Snacks.picker.resume() end, desc = "Resume last picker" },
+      -- { "<leader><space>", function() Snacks.picker.files() end, desc = "Find Files (Project)" },
+      -- { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
+      -- { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep (Project)" },
+      -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
+      -- { "<leader>gd", function() Snacks.picker.git_diff({ ... }) end, desc = "Git Diff" },
       {
         "<leader>n",
         function()
@@ -76,32 +34,12 @@ return {
         end,
         desc = "Notification History",
       },
-      {
-        "<leader>gd",
-        function()
-          Snacks.picker.git_diff({
-            multi = false,
-            win = {
-              input = {
-                keys = {
-                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
-                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
-                },
-              },
-              list = {
-                keys = {
-                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
-                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
-                },
-              },
-            },
-          })
-        end,
-        desc = "Git Diff (no multi)",
-      },
     },
 
     opts = {
+      -- Route vim.ui.select (DAP config picker, code actions, etc.) through snacks
+      ui_select = {},
+
       -- Soft rounded styles for all Snacks components
       styles = {
         -- Notification style
@@ -216,6 +154,16 @@ return {
         },
         formatters = {},
         sources = {
+          git_diff = {
+            win = {
+              input = {
+                keys = {
+                  ["<Tab>"] = { "list_down", mode = { "i", "n" } },
+                  ["<S-Tab>"] = { "list_up", mode = { "i", "n" } },
+                },
+              },
+            },
+          },
           grep = {
             hidden = true,
             ignored = true,

@@ -2,22 +2,55 @@ local db_tab = nil
 local saved_dbout_lines = nil
 local last_sql_buf = nil
 
+-- Clear modified on dbout buffers the moment dadbod writes to them (outside
+-- of edit mode). VimLeavePre fires *after* the save prompt, so it's too late;
+-- BufModifiedSet fires at the moment modified changes, before any quit check.
+vim.api.nvim_create_autocmd("BufModifiedSet", {
+  callback = function(ev)
+    if vim.bo[ev.buf].filetype ~= "dbout" then return end
+    if vim.b[ev.buf].db_ui_edit_mode then return end
+    if vim.bo[ev.buf].modified then
+      vim.bo[ev.buf].modified = false
+    end
+  end,
+})
+
+-- QuitPre fires before Neovim checks for unsaved buffers, so this catches
+-- anything BufModifiedSet missed (e.g. buffers that were never displayed).
+vim.api.nvim_create_autocmd("QuitPre", {
+  callback = function()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "dbout" then
+        vim.bo[buf].modified = false
+      end
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "dbout",
   callback = function(ev)
     vim.schedule(function()
-      if not vim.api.nvim_buf_is_valid(ev.buf) then
-        return
-      end
-      vim.bo[ev.buf].bufhidden = "hide"
+      local new_buf = ev.buf
+      if not vim.api.nvim_buf_is_valid(new_buf) then return end
 
-      -- Close any windows showing a different (stale) dbout buffer
-      for _, win in ipairs(vim.api.nvim_list_wins()) do
-        if vim.api.nvim_win_is_valid(win) then
-          local buf = vim.api.nvim_win_get_buf(win)
-          if buf ~= ev.buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "dbout" then
-            vim.api.nvim_win_close(win, true)
+      vim.bo[new_buf].bufhidden = "hide"
+      vim.bo[new_buf].modified = false
+
+      -- Wipe every other dbout buffer so only one accumulates at a time.
+      -- Skip buffers currently in edit mode to avoid losing in-progress edits.
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if buf ~= new_buf
+          and vim.api.nvim_buf_is_valid(buf)
+          and vim.bo[buf].filetype == "dbout"
+          and not vim.b[buf].db_ui_edit_mode
+        then
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == buf then
+              vim.api.nvim_win_close(win, true)
+            end
           end
+          pcall(vim.api.nvim_buf_delete, buf, { force = true })
         end
       end
     end)
@@ -77,6 +110,7 @@ local function get_or_restore_dbout()
     vim.bo[buf].filetype = "dbout"
     vim.bo[buf].buftype = "nofile"
     vim.bo[buf].modifiable = false
+    vim.bo[buf].modified = false
     vim.bo[buf].bufhidden = "hide"
     return buf
   end
@@ -205,7 +239,7 @@ end
 
 return {
   {
-    "kristijanhusak/vim-dadbod-ui",
+    "hyptocrypto/vim-dadbod-ui",
     keys = {
       { "<leader>DD", toggle_db_mode, desc = "Toggle DB Mode" },
       { "<leader>D", false },
