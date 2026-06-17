@@ -317,8 +317,55 @@ function gwt() {
         ls)
             git worktree list
             ;;
+        rzsync)
+            local main_root wt_dir
+            main_root=$(git worktree list --porcelain | awk 'NR==1 && /^worktree /{print $2}')
+            wt_dir=$(git rev-parse --show-toplevel)
+
+            if [[ "$wt_dir" == "$main_root" ]]; then
+                echo "rzsync: already in main worktree, nothing to sync"
+                return 1
+            fi
+
+            # Copy .env from main worktree and update PROJECT_DIR to point at this worktree
+            if [[ ! -f "$wt_dir/.env" ]]; then
+                cp "$main_root/.env" "$wt_dir/.env"
+                sed -i '' "s;PROJECT_DIR=${main_root};PROJECT_DIR=${wt_dir};" "$wt_dir/.env"
+                echo "→ .env copied and PROJECT_DIR updated"
+            else
+                echo "→ .env already exists, skipping"
+            fi
+
+            # Copy AGENTS.md from main worktree
+            if [[ ! -f "$wt_dir/AGENTS.md" && -f "$main_root/AGENTS.md" ]]; then
+                cp "$main_root/AGENTS.md" "$wt_dir/AGENTS.md"
+                echo "→ AGENTS.md copied"
+            else
+                echo "→ AGENTS.md already exists or not found in main, skipping"
+            fi
+
+            # Symlink .certs from main worktree (certs are shared across worktrees)
+            if [[ ! -e "$wt_dir/.certs" ]]; then
+                ln -s "$main_root/.certs" "$wt_dir/.certs"
+                echo "→ .certs symlinked from main worktree"
+            else
+                echo "→ .certs already exists, skipping"
+            fi
+
+            # yarn install in worktree root
+            echo "→ running yarn install..."
+            (cd "$wt_dir" && yarn install)
+
+            # yarn in vue/
+            if [[ -d "$wt_dir/vue" ]]; then
+                echo "→ running yarn in vue/..."
+                (cd "$wt_dir/vue" && yarn)
+            fi
+
+            echo "→ rzsync complete — ready to run: yak run dev"
+            ;;
         *)
-            echo "Usage: gwt <add <branch> [base] | rm <branch> | go [branch] | ls>"
+            echo "Usage: gwt <add <branch> [base] | rm <branch> | go [branch] | ls | rzsync>"
             ;;
     esac
 }
@@ -346,7 +393,8 @@ function _gwt() {
                 'add[create worktree and branch]' \
                 'rm[remove worktree and delete branch]' \
                 'go[cd into a worktree]' \
-                'ls[list all worktrees]'
+                'ls[list all worktrees]' \
+                'rzsync[sync .env/.certs and run yarn for this worktree]'
             ;;
         arg1)
             case $words[2] in
