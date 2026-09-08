@@ -9,9 +9,7 @@ cd ~/dev/dotfiles/pi
 ./install.sh
 ```
 
-This:
-- **Symlinks** shared config (extensions, themes, settings) to this repo
-- **Copies** agent configs (device-specific, modified by switch-agents.sh)
+This copies all pi config from the repo to `~/.pi/agent/`. Safe to re-run to update from repo.
 
 ## Configure Agents for Your Provider
 
@@ -78,14 +76,12 @@ This detects which provider you're authenticated with and configures agents acco
 
 ## How It Works
 
-- **install.sh** symlinks shared config, copies agent templates
-- **switch-agents.sh** detects provider from `~/.pi/agent/auth.json`
-- Agent configs in `~/.pi/agent/agents/` are local (not in git)
-- Repo contains templates that get copied during install
-- Each device runs `switch-agents.sh` after install to configure for its provider
-
-**Symlinked (shared):** extensions, themes, prompts, settings, AGENTS.md  
-**Copied (local):** agents/*.md (device-specific)
+- **install.sh** copies all config from repo to `~/.pi/agent/`
+- **switch-agents.sh** detects provider and configures agents
+- All files in `~/.pi/agent/` are local copies (not in git)
+- Repo contains templates
+- Re-run `install.sh` to update from repo
+- Run `switch-agents.sh` after install to configure for your provider
 
 ## Extensions
 

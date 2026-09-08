@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Symlink the pi (coding agent) config from this dotfiles repo into ~/.pi/agent.
-# Safe to re-run: it backs up any existing non-symlink target once, then relinks.
+# Copy pi (coding agent) config from this dotfiles repo into ~/.pi/agent.
+# Safe to re-run: overwrites files to update from repo templates.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,48 +8,51 @@ PI_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 
 mkdir -p "$PI_DIR"
 
-link() {
+copy_file() {
 	local src="$1" dst="$2"
-	if [ -e "$dst" ] && [ ! -L "$dst" ]; then
-		mv "$dst" "$dst.bak.$(date +%s)"
-		echo "backed up existing $dst"
-	fi
-	ln -sfn "$src" "$dst"
-	echo "linked $dst -> $src"
-}
-
-copy() {
-	local src="$1" dst="$2"
-	if [ -e "$dst" ] && [ ! -L "$dst" ]; then
-		# Already exists and is not a symlink, skip
-		echo "skipped $dst (already exists)"
-		return
-	fi
-	# Remove symlink if it exists
+	# Remove old symlink if it exists
 	[ -L "$dst" ] && rm "$dst"
-	cp -r "$src" "$dst"
-	echo "copied $dst <- $src"
+	# Backup existing file on first install
+	if [ -f "$dst" ] && [ ! -f "$dst.bak" ]; then
+		cp "$dst" "$dst.bak"
+		echo "backed up $dst -> $dst.bak"
+	fi
+	cp "$src" "$dst"
+	echo "copied $dst"
 }
 
-# Files (symlinked - shared across devices)
-link "$REPO_DIR/settings.json"    "$PI_DIR/settings.json"
-link "$REPO_DIR/keybindings.json" "$PI_DIR/keybindings.json"
-link "$REPO_DIR/AGENTS.md"        "$PI_DIR/AGENTS.md"
+copy_dir() {
+	local src="$1" dst="$2"
+	# Remove old symlink if it exists
+	[ -L "$dst" ] && rm "$dst"
+	# Create directory if it doesn't exist
+	mkdir -p "$dst"
+	# Copy all files from source to destination
+	cp -r "$src"/* "$dst"/
+	echo "copied $dst/"
+}
 
-# Resource directories (symlinked - shared across devices)
-link "$REPO_DIR/themes"     "$PI_DIR/themes"
-link "$REPO_DIR/extensions" "$PI_DIR/extensions"
-link "$REPO_DIR/prompts"    "$PI_DIR/prompts"
+echo "Copying pi config from repo to ~/.pi/agent..."
+echo
 
-# Agent configs (copied - device-specific, modified by switch-agents.sh)
-mkdir -p "$PI_DIR/agents"
-for agent in "$REPO_DIR/agents"/*.md; do
-	[ -f "$agent" ] || continue
-	base="$(basename "$agent")"
-	copy "$agent" "$PI_DIR/agents/$base"
-done
+# Copy individual files
+copy_file "$REPO_DIR/settings.json"    "$PI_DIR/settings.json"
+copy_file "$REPO_DIR/keybindings.json" "$PI_DIR/keybindings.json"
+copy_file "$REPO_DIR/AGENTS.md"        "$PI_DIR/AGENTS.md"
+
+# Copy directories
+copy_dir "$REPO_DIR/themes"     "$PI_DIR/themes"
+copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
+copy_dir "$REPO_DIR/prompts"    "$PI_DIR/prompts"
+copy_dir "$REPO_DIR/agents"     "$PI_DIR/agents"
 
 echo
-echo "Done. Start pi and run /reload (or restart) to apply."
-echo "Note: install language tooling as needed on this device:"
-echo "  go: gopls  |  py: ruff  |  ts/vue: typescript-language-server @vue/language-server vue-tsc  |  bash: shellcheck"
+echo "Done! Config copied to ~/.pi/agent/"
+echo
+echo "Next steps:"
+echo "  1. Run: pi"
+echo "  2. Login: /login (choose your provider)"
+echo "  3. Run: cd $REPO_DIR && ./switch-agents.sh"
+echo "  4. Reload: /reload (in pi, if already running)"
+echo
+echo "To update from repo later: re-run this script (./install.sh)"
