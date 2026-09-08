@@ -18,16 +18,36 @@ link() {
 	echo "linked $dst -> $src"
 }
 
-# Files
+copy() {
+	local src="$1" dst="$2"
+	if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+		# Already exists and is not a symlink, skip
+		echo "skipped $dst (already exists)"
+		return
+	fi
+	# Remove symlink if it exists
+	[ -L "$dst" ] && rm "$dst"
+	cp -r "$src" "$dst"
+	echo "copied $dst <- $src"
+}
+
+# Files (symlinked - shared across devices)
 link "$REPO_DIR/settings.json"    "$PI_DIR/settings.json"
 link "$REPO_DIR/keybindings.json" "$PI_DIR/keybindings.json"
 link "$REPO_DIR/AGENTS.md"        "$PI_DIR/AGENTS.md"
 
-# Resource directories (auto-discovered by pi)
+# Resource directories (symlinked - shared across devices)
 link "$REPO_DIR/themes"     "$PI_DIR/themes"
 link "$REPO_DIR/extensions" "$PI_DIR/extensions"
-link "$REPO_DIR/agents"     "$PI_DIR/agents"
 link "$REPO_DIR/prompts"    "$PI_DIR/prompts"
+
+# Agent configs (copied - device-specific, modified by switch-agents.sh)
+mkdir -p "$PI_DIR/agents"
+for agent in "$REPO_DIR/agents"/*.md; do
+	[ -f "$agent" ] || continue
+	base="$(basename "$agent")"
+	copy "$agent" "$PI_DIR/agents/$base"
+done
 
 echo
 echo "Done. Start pi and run /reload (or restart) to apply."

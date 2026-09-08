@@ -22,8 +22,9 @@ Done! Your agents are now configured for your provider.
 
 **install.sh:**
 - Creates `~/.pi/agent/` directory
-- Symlinks repo files to `~/.pi/agent/`
-- Pi reads from `~/.pi/agent/` which points to your repo
+- **Symlinks** shared config (extensions, themes, settings)
+- **Copies** agent templates (they'll be modified per device)
+- Pi reads from `~/.pi/agent/`
 
 **switch-agents.sh:**
 - Reads `~/.pi/agent/auth.json` to detect your provider
@@ -96,15 +97,15 @@ ls -la ~/.pi/agent/
 
 **Repo (version controlled):**
 ```
-~/dev/dotfiles/pi/agents/*.md
-~/dev/dotfiles/pi/extensions/*.ts
-~/dev/dotfiles/pi/switch-agents.sh
+~/dev/dotfiles/pi/agents/*.md        # Templates
+~/dev/dotfiles/pi/extensions/*.ts    # Shared
+~/dev/dotfiles/pi/switch-agents.sh   # Shared
 ```
 
-**Pi reads from (symlinked):**
+**Pi reads from:**
 ```
-~/.pi/agent/agents/*.md → repo
-~/.pi/agent/extensions/*.ts → repo
+~/.pi/agent/agents/*.md              # Local copies (device-specific)
+~/.pi/agent/extensions/*.ts → repo  # Symlinked (shared)
 ```
 
 **Not in repo (local only):**

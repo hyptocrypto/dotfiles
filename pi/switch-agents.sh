@@ -4,9 +4,9 @@
 
 set -euo pipefail
 
-# Determine script location (works for repo or installed location)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AGENT_DIR="$SCRIPT_DIR/agents"
+# Agent configs are in ~/.pi/agent/agents (copied from repo during install)
+# Script can be run from anywhere
+AGENT_DIR="$HOME/.pi/agent/agents"
 AUTH_FILE="$HOME/.pi/agent/auth.json"
 
 echo "Pi Agent Configuration Switcher"

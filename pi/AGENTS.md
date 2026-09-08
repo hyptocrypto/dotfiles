@@ -55,13 +55,31 @@ The default model is **Sonnet**. Escalate to **Opus** (Ctrl+L) only for genuinel
 hard reasoning, tricky debugging, or architecture. Use the `subagent` tool to
 keep the main context small and push cheap/parallelizable work down a tier:
 
-- **scout** (Haiku) — fast recon, locating code, compressed context dumps.
+- **scout** (Haiku/Gemini Flash) — fast recon, locating code, compressed context dumps.
 - **planner** (Sonnet) — turn findings into a concrete plan.
 - **worker** (Sonnet) — implement well-scoped tasks in isolation.
-- **reviewer** (Sonnet) — security/quality/networking review.
+- **reviewer** (Opus) — security/quality/networking review with deep analysis.
 
 Prefer delegating bulk searching/reading to `scout` instead of reading many files
 into the main context. Run independent investigations in parallel.
+
+### When to Use Subagents
+
+Use subagents when:
+✓ Task can be parallelized (multiple independent modules)
+✓ Different models needed (cheap search + smart implementation)
+✓ Context needs reset (fresh perspective on each subtask)
+✓ Main context would get polluted with bulk file reading
+✓ Cost savings matter (Haiku is 10x cheaper than Sonnet)
+
+DON'T use subagents when:
+✗ Task is small/simple (< 5 minutes)
+✗ Requires iterative back-and-forth debugging
+✗ Need to maintain conversation state
+✗ All steps need the same full context
+✗ Time is more valuable than cost (~1 min overhead per subagent)
+
+See `DECISION-FRAMEWORK.md` for detailed guidance.
 
 ## Token efficiency
 
