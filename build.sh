@@ -26,6 +26,9 @@ cp "$HOME"/dev/dotfiles/.p10k.zsh "$HOME/"
 cp "$HOME"/dev/dotfiles/ghostty_config "$HOME/.config/ghosty/config"
 cp "$HOME"/dev/dotfiles/nvim "$HOME/.config/"
 
+# pi (coding agent) config -> symlinked into ~/.pi/agent
+bash "$HOME/dev/dotfiles/pi/install.sh"
+
 # Raycast
 if [ -d "$HOME/dev/dotfiles/raycast/com.raycast.macos" ]; then
     echo "Restoring Raycast settings..."

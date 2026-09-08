@@ -1,0 +1,5 @@
+{
+	"app.interrupt": "ctrl+c",
+	"app.clear": "ctrl+shift+c",
+	"app.exit": "ctrl+d"
+}
