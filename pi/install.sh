@@ -52,7 +52,11 @@ echo
 echo "Next steps:"
 echo "  1. Run: pi"
 echo "  2. Login: /login (choose your provider)"
-echo "  3. Run: cd $REPO_DIR && ./switch-agents.sh"
-echo "  4. Reload: /reload (in pi, if already running)"
+echo "  3. Restart: /quit then pi (auto-detects provider and configures models)"
 echo
+echo "Note: Models auto-configure based on your authenticated provider."
+echo "  - GitHub Copilot → gemini-3.8-flash (scout), claude-sonnet-5, claude-opus-5"
+echo "  - Anthropic → claude-haiku-4-5 (scout), claude-sonnet-4-5"
+echo
+echo "Manual override: Run ./switch-agents.sh if needed"
 echo "To update from repo later: re-run this script (./install.sh)"

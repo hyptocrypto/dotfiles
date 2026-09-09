@@ -1,9 +1,9 @@
 # Quick Setup Guide
 
-## New Device Setup (3 steps)
+## New Device Setup (2 steps)
 
 ```bash
-# 1. Install (creates symlinks)
+# 1. Install (copies config)
 cd ~/dev/dotfiles/pi
 ./install.sh
 
@@ -11,12 +11,19 @@ cd ~/dev/dotfiles/pi
 pi
 /login  # Choose Claude or Copilot
 /quit
-
-# 3. Configure agents
-./switch-agents.sh
+pi       # Restart - auto-detects provider and configures models
 ```
 
-Done! Your agents are now configured for your provider.
+Done! Models auto-configure based on your authenticated provider.
+
+## How Auto-Configuration Works
+
+The `auto-provider-config` extension runs on session start:
+- Reads `~/.pi/agent/auth.json` to detect your provider
+- If provider changed, updates `settings.json` and agent model references
+- Notifies you and suggests `/reload`
+
+No manual `switch-agents.sh` needed unless you want to force a re-configuration.
 
 ## What Happens
 
@@ -26,11 +33,16 @@ Done! Your agents are now configured for your provider.
 - Safe to re-run (backs up existing files on first run)
 - Updates local config to match repo templates
 
-**switch-agents.sh:**
-- Reads `~/.pi/agent/auth.json` to detect your provider
-- Updates agent configs in the repo with correct models
+**auto-provider-config extension:**
+- Runs automatically on session start
+- Detects provider from `~/.pi/agent/auth.json`
+- Updates `settings.json` and `~/.pi/agent/agents/*.md` with correct models
 - Claude device → haiku/sonnet models
 - Copilot device → gemini/sonnet/opus models
+
+**switch-agents.sh (manual override):**
+- Same behavior as auto-config, but runs explicitly
+- Useful if auto-config fails or you want to force re-detection
 
 ## Models Used
 
@@ -78,8 +90,14 @@ cd ~/dev/dotfiles/pi
 
 **Wrong models?**
 ```bash
+# Option 1: Restart pi (auto-detects)
+pi
+/quit
+pi
+
+# Option 2: Manual override
 cd ~/dev/dotfiles/pi
-./switch-agents.sh  # Re-detect and configure
+./switch-agents.sh  # Force re-detect and configure
 ```
 
 **Check symlinks:**

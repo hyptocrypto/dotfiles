@@ -70,7 +70,7 @@ Use subagents when:
 ✓ Different models needed (cheap search + smart implementation)
 ✓ Context needs reset (fresh perspective on each subtask)
 ✓ Main context would get polluted with bulk file reading
-✓ Cost savings matter (Haiku is 10x cheaper than Sonnet)
+✓ Cost savings matter (Haiku/Gemini is 10x cheaper than Sonnet)
 
 DON'T use subagents when:
 ✗ Task is small/simple (< 5 minutes)

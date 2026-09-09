@@ -18,7 +18,7 @@ Can it be split into independent parts?
 └─ NO → Continue...
 
 Is search/recon a major part?
-├─ YES → scout (Haiku) → worker (Sonnet) ✓
+├─ YES → scout (Haiku/Gemini) → worker (Sonnet) ✓
 └─ NO → Use Sonnet directly
 ```
 
@@ -34,7 +34,7 @@ Is search/recon a major part?
 3. worker: Implement rate limiting for each
 4. reviewer: Security check
 
-Why: Large codebase search (Haiku saves $), then targeted work
+Why: Large codebase search (Haiku/Gemini saves $), then targeted work
 ```
 
 **Scenario: "Fix this nil pointer panic"**
