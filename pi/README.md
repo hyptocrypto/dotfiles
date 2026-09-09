@@ -83,13 +83,26 @@ This detects which provider you're authenticated with and configures agents acco
 - Re-run `install.sh` to update from repo
 - Run `switch-agents.sh` after install to configure for your provider
 
+## Custom Commands
+
+**New custom commands added:**
+- `/btw <question>` - Quick questions to cheap model (non-blocking)
+- `/usage` - Account-wide usage and limits (not session-scoped)
+- `/m` or `/pick` - Enhanced model picker with cost info and thinking levels
+
+See **[COMMANDS.md](COMMANDS.md)** for full documentation.
+
 ## Extensions
 
 Extensions in `extensions/` are auto-loaded by pi:
+- `btw.ts` - Quick questions (`/btw`)
+- `usage.ts` - Account usage (`/usage`)
+- `model-enhanced.ts` - Enhanced model picker (`/m`, `/pick`)
 - `confirm-destructive.ts` - Confirm dangerous operations
 - `git-checkpoint.ts` - Auto-checkpoint on changes
 - `protected-paths.ts` - Block writes to sensitive files
 - `question.ts` - Enhanced question tool
+- `subagent/` - Task delegation
 - `todo.ts` - Todo list management
 - And more...
 
