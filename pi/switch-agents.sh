@@ -6,6 +6,7 @@ set -euo pipefail
 
 # Agent configs are in ~/.pi/agent/agents (copied from repo during install)
 # Script can be run from anywhere
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_DIR="$HOME/.pi/agent/agents"
 SETTINGS_FILE="$HOME/.pi/agent/settings.json"
 AUTH_FILE="$HOME/.pi/agent/auth.json"
@@ -231,38 +232,8 @@ EOF
         echo "  ✓ reviewer.md → claude-opus-5"
         
         # Update settings.json for Copilot
-        cat > "$SETTINGS_FILE" << 'EOF'
-{
-  "theme": "nord",
-  "defaultProvider": "github-copilot",
-  "defaultModel": "claude-sonnet-5",
-  "defaultThinkingLevel": "medium",
-  "modelThinkingLevels": {
-    "github-copilot/claude-opus-5": "high",
-    "github-copilot/claude-sonnet-5": "medium",
-    "github-copilot/gemini-3.8-flash": "minimal"
-  },
-  "enabledModels": [
-    "github-copilot/claude-sonnet-5",
-    "github-copilot/claude-opus-5",
-    "github-copilot/gemini-3.8-flash"
-  ],
-  "doubleEscapeAction": "none",
-  "compaction": {
-    "enabled": true,
-    "reserveTokens": 16384,
-    "keepRecentTokens": 20000
-  },
-  "retry": {
-    "enabled": true,
-    "maxRetries": 3
-  },
-  "warnings": {
-    "anthropicExtraUsage": true
-  }
-}
-EOF
-        echo "  ✓ settings.json → github-copilot defaults"
+        node "$SCRIPT_DIR/update-settings.js" github-copilot
+        echo "  ✓ settings.json → github-copilot models"
         
         echo
         echo "✓ Copilot configuration complete"
@@ -466,38 +437,8 @@ EOF
         echo "  ✓ reviewer.md → claude-sonnet-4-5"
         
         # Update settings.json for Claude
-        cat > "$SETTINGS_FILE" << 'EOF'
-{
-  "theme": "nord",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-sonnet-4-5",
-  "defaultThinkingLevel": "medium",
-  "modelThinkingLevels": {
-    "anthropic/claude-opus-4-8": "high",
-    "anthropic/claude-sonnet-4-5": "medium",
-    "anthropic/claude-haiku-4-5": "minimal"
-  },
-  "enabledModels": [
-    "anthropic/claude-sonnet-4-5",
-    "anthropic/claude-opus-4-8",
-    "anthropic/claude-haiku-4-5"
-  ],
-  "doubleEscapeAction": "none",
-  "compaction": {
-    "enabled": true,
-    "reserveTokens": 16384,
-    "keepRecentTokens": 20000
-  },
-  "retry": {
-    "enabled": true,
-    "maxRetries": 3
-  },
-  "warnings": {
-    "anthropicExtraUsage": true
-  }
-}
-EOF
-        echo "  ✓ settings.json → anthropic defaults"
+        node "$SCRIPT_DIR/update-settings.js" anthropic
+        echo "  ✓ settings.json → anthropic models"
         
         echo
         echo "✓ Claude configuration complete"

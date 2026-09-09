@@ -12,8 +12,9 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
 import { homedir } from "os";
+import { execSync } from "child_process";
 
 const AGENT_DIR = join(homedir(), ".pi", "agent");
 const AUTH_FILE = join(AGENT_DIR, "auth.json");
@@ -42,10 +43,13 @@ export default function (pi: ExtensionAPI) {
 			// Provider mismatch - update settings
 			ctx.ui.notify(`Detected ${provider} provider, updating configuration...`, "info");
 			
-			updateSettings(provider);
-			updateAgents(provider);
-
-			ctx.ui.notify(`✓ Configured for ${provider}. Run /reload to apply changes.`, "success");
+			const success = updateSettings(provider);
+			if (success) {
+				updateAgents(provider);
+				ctx.ui.notify(`✓ Configured for ${provider}. Run /reload to apply changes.`, "success");
+			} else {
+				ctx.ui.notify(`Failed to update settings. Run: cd ~/dev/dotfiles/pi && ./switch-agents.sh`, "warning");
+			}
 			
 		} catch (error) {
 			// Silently fail - don't break session startup
@@ -85,45 +89,67 @@ function readSettings(): any | null {
 	}
 }
 
-function updateSettings(provider: string) {
-	const settingsPath = SETTINGS_FILE;
-
-	let settings: any;
+function updateSettings(provider: string): boolean {
 	try {
-		settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
-	} catch {
-		settings = {};
-	}
-
-	if (provider === "github-copilot") {
-		settings.defaultProvider = "github-copilot";
-		settings.defaultModel = "claude-sonnet-5";
-		settings.modelThinkingLevels = {
-			"github-copilot/claude-opus-5": "high",
-			"github-copilot/claude-sonnet-5": "medium",
-			"github-copilot/gemini-3.8-flash": "minimal",
-		};
-		settings.enabledModels = [
-			"github-copilot/claude-sonnet-5",
-			"github-copilot/claude-opus-5",
-			"github-copilot/gemini-3.8-flash",
+		// Use the update-settings.js helper script
+		const helperScript = join(AGENT_DIR, "..", "..", "dev", "dotfiles", "pi", "update-settings.js");
+		
+		// Try common dotfiles locations
+		const possiblePaths = [
+			helperScript,
+			join(homedir(), "dev", "dotfiles", "pi", "update-settings.js"),
+			join(homedir(), "dotfiles", "pi", "update-settings.js"),
 		];
-	} else if (provider === "anthropic") {
-		settings.defaultProvider = "anthropic";
-		settings.defaultModel = "claude-sonnet-4-5";
-		settings.modelThinkingLevels = {
-			"anthropic/claude-opus-4-8": "high",
-			"anthropic/claude-sonnet-4-5": "medium",
-			"anthropic/claude-haiku-4-5": "minimal",
-		};
-		settings.enabledModels = [
-			"anthropic/claude-sonnet-4-5",
-			"anthropic/claude-opus-4-8",
-			"anthropic/claude-haiku-4-5",
-		];
-	}
+		
+		for (const scriptPath of possiblePaths) {
+			if (existsSync(scriptPath)) {
+				execSync(`node "${scriptPath}" ${provider}`, { stdio: "inherit" });
+				return true;
+			}
+		}
+		
+		// Fallback: manual update if script not found
+		let settings: any;
+		try {
+			settings = JSON.parse(readFileSync(SETTINGS_FILE, "utf-8"));
+		} catch {
+			settings = {};
+		}
 
-	writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+		if (provider === "github-copilot") {
+			settings.defaultProvider = "github-copilot";
+			settings.defaultModel = "claude-sonnet-5";
+			settings.modelThinkingLevels = {
+				"github-copilot/claude-opus-5": "high",
+				"github-copilot/claude-sonnet-5": "medium",
+				"github-copilot/gemini-3.8-flash": "minimal",
+			};
+			settings.enabledModels = [
+				"github-copilot/claude-sonnet-5",
+				"github-copilot/claude-opus-5",
+				"github-copilot/gemini-3.8-flash",
+			];
+		} else if (provider === "anthropic") {
+			settings.defaultProvider = "anthropic";
+			settings.defaultModel = "claude-sonnet-4-5";
+			settings.modelThinkingLevels = {
+				"anthropic/claude-opus-4-8": "high",
+				"anthropic/claude-sonnet-4-5": "medium",
+				"anthropic/claude-haiku-4-5": "minimal",
+			};
+			settings.enabledModels = [
+				"anthropic/claude-sonnet-4-5",
+				"anthropic/claude-opus-4-8",
+				"anthropic/claude-haiku-4-5",
+			];
+		}
+
+		writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+		return true;
+	} catch (error) {
+		console.error("Failed to update settings:", error);
+		return false;
+	}
 }
 
 function updateAgents(provider: string) {
