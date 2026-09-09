@@ -11,6 +11,9 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
 
 const THINKING_LEVELS = [
 	{ value: "off", label: "Off - No extended reasoning" },
@@ -30,8 +33,17 @@ export default function (pi: ExtensionAPI) {
 			const allModels = ctx.modelRegistry.getAll();
 			const currentModel = ctx.model;
 
-			// Get enabled models from settings
-			const enabledModelIds = ctx.settings?.enabledModels || [];
+			// Get enabled models from settings (read directly from file since ctx.settings is undefined)
+			let enabledModelIds: string[] = [];
+			try {
+				const settingsPath = join(homedir(), ".pi", "agent", "settings.json");
+				const settingsContent = readFileSync(settingsPath, "utf-8");
+				const settings = JSON.parse(settingsContent);
+				enabledModelIds = settings.enabledModels || [];
+			} catch (error) {
+				// Fall back to ctx.settings if file read fails
+				enabledModelIds = ctx.settings?.enabledModels || [];
+			}
 
 			if (enabledModelIds.length === 0) {
 				ctx.ui.notify(

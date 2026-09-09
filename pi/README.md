@@ -11,15 +11,16 @@ cd ~/dev/dotfiles/pi
 
 This copies all pi config from the repo to `~/.pi/agent/`. Safe to re-run to update from repo.
 
-## Auto-Configuration
+## Configure for Your Provider
 
-Models auto-configure based on your authenticated provider:
+After logging into pi (`/login`), run:
 
-1. Run `pi` and `/login` (choose Claude or Copilot)
-2. Restart: `/quit` then `pi`
-3. The `auto-provider-config` extension detects your provider and updates models
+```bash
+cd ~/dev/dotfiles/pi
+./switch-agents.sh
+```
 
-**Manual override:** Run `./switch-agents.sh` to force re-detection.
+This detects which provider you're authenticated with and configures agents accordingly.
 
 ### Agent Model Mappings
 
@@ -37,8 +38,7 @@ Models auto-configure based on your authenticated provider:
 
 ## Files
 
-- **`switch-agents.sh`** - Manual provider detection and configuration
-- **`extensions/auto-provider-config.ts`** - Auto-configures on session start
+- **`switch-agents.sh`** - Provider detection and configuration
 - **`agents/`** - Agent definitions (scout, planner, worker, reviewer)
 - **`extensions/`** - Pi extensions
 - **`prompts/`** - Custom prompt templates
