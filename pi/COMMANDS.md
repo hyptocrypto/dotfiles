@@ -11,8 +11,6 @@ This document describes custom commands added via extensions.
 
 **Quick questions:** Use `/btw <question>` for one-off questions to cheap models
 
-**Account usage:** Use `/usage` for account-wide usage limits (not session-scoped)
-
 ## Quick Questions
 
 ### `/btw <question>`
@@ -39,98 +37,7 @@ This document describes custom commands added via extensions.
 
 ---
 
-## Account Usage
 
-### `/usage`
-
-Show account-wide usage information and limits.
-
-**Important:** This shows ACCOUNT-level usage, not session usage. Use `/session` for session-specific info.
-
-**Displays:**
-- **Claude Subscription (OAuth):** References footer for live usage limits
-- **Claude API (Admin Key):** Total tokens and cost for last 7 days
-- **Copilot:** AI credits used/remaining (requires org/enterprise)
-- **Other Providers:** Links to provider dashboards
-
-**Example Output (Claude Subscription):**
-```
-📊 Account Usage
-
-Claude Account:
-
-Claude Subscription:
-
-✅ Live usage limits shown in footer (🧠)
-
-The footer shows:
-  • 5h    = 5-hour rolling window
-  • wk    = Weekly all-models limit
-  • opus/sonnet = Per-model weekly limits
-
-⚠️  If you see extra usage warning, you've exceeded subscription limits
-```
-
-**Example Output (Claude API with Admin Key):**
-```
-📊 Account Usage
-
-Claude Account:
-
-Recent Usage (last 7 days):
-
-Total Tokens:     2.5M
-Total Cost:       $12.45
-
-For detailed breakdown:
-  https://console.anthropic.com/settings/cost
-```
-
-**Example Output (Copilot - Org/Enterprise):**
-```
-📊 Account Usage
-
-GitHub Copilot Account:
-
-AI Credits Used:  1.2k
-Credits Remaining: 8.8k
-Period: Current billing cycle
-
-For detailed breakdown:
-  https://github.com/settings/copilot
-```
-
-**Example Output (Copilot - Individual):**
-```
-📊 Account Usage
-
-GitHub Copilot Account:
-
-ℹ️  Usage data not available
-
-Copilot usage API requires:
-  • Enterprise or Organization account
-  • 'Copilot usage metrics' policy enabled
-  • Appropriate permissions
-
-Check your account at:
-  https://github.com/settings/copilot
-```
-
-**Important Notes:**
-
-**Claude:**
-- **Subscription (OAuth)**: Live limits shown in footer, `/usage` references it
-- **API Key (Admin)**: Requires Admin API key (sk-ant-admin01-...) for account data
-- **API Key (Regular)**: Only session data available (use `/session`)
-
-**Copilot:**
-- **Enterprise/Org**: Usage API available with proper permissions
-- **Individual**: No programmatic usage API, check website
-
-**For session data** (any provider): Use `/session` command
-
----
 
 ## Enhanced Model Picker
 
@@ -139,6 +46,11 @@ Check your account at:
 Enhanced interactive model picker with cost information and thinking level selection.
 
 **Note:** Extensions cannot override the built-in `/model` command, so use `/m` or `/pick` for the enhanced experience.
+
+**Requirements:**
+- Models must be configured in `enabledModels` in your `settings.json`
+- Only shows models that are explicitly enabled (prevents selecting unavailable models)
+- If no models enabled, shows helpful message with setup instructions
 
 **Features:**
 - Shows only enabled models (from settings.json)

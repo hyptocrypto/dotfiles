@@ -30,29 +30,37 @@ export default function (pi: ExtensionAPI) {
 			const allModels = ctx.modelRegistry.getAll();
 			const currentModel = ctx.model;
 
-			// Try to get enabled models from settings, otherwise show all
-			let enabledModelIds: string[] = [];
-			try {
-				enabledModelIds = ctx.settings?.enabledModels || [];
-			} catch (e) {
-				// If settings not accessible, show all models
+			// Get enabled models from settings
+			const enabledModelIds = ctx.settings?.enabledModels || [];
+
+			if (enabledModelIds.length === 0) {
+				ctx.ui.notify(
+					"No models enabled in settings.json.\n\n" +
+					"Add models to your settings.json:\n" +
+					'"enabledModels": [\n' +
+					'  "anthropic/claude-sonnet-4-5",\n' +
+					'  "anthropic/claude-opus-4-8",\n' +
+					'  "anthropic/claude-haiku-4-5"\n' +
+					']\n\n' +
+					"Or use built-in /model command.",
+					"warning"
+				);
+				return;
 			}
 
-			// Filter to enabled models if configured, otherwise show all from current provider
-			let availableModels = allModels;
-			
-			if (enabledModelIds.length > 0) {
-				availableModels = allModels.filter((model) => {
-					const modelId = `${model.provider}/${model.id}`;
-					return enabledModelIds.includes(modelId);
-				});
-			} else if (currentModel) {
-				// If no enabled models, show all from current provider
-				availableModels = allModels.filter((model) => model.provider === currentModel.provider);
-			}
+			// Filter to only enabled models
+			const availableModels = allModels.filter((model) => {
+				const modelId = `${model.provider}/${model.id}`;
+				return enabledModelIds.includes(modelId);
+			});
 
 			if (availableModels.length === 0) {
-				ctx.ui.notify("No models available. Try /model (built-in) instead.", "warning");
+				ctx.ui.notify(
+					"No enabled models found in registry.\n\n" +
+					"Check your enabledModels in settings.json match available models.\n" +
+					"Or use built-in /model command.",
+					"warning"
+				);
 				return;
 			}
 
