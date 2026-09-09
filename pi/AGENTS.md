@@ -81,13 +81,68 @@ DON'T use subagents when:
 
 See `DECISION-FRAMEWORK.md` for detailed guidance.
 
-## Token efficiency
+## Communication & Code Efficiency
 
-- Be concise. Don't restate the plan, the file contents, or my request back to me.
-- Read narrowly (use offsets/line ranges, grep) rather than dumping whole files.
-- Don't re-read files you already have in context.
+### Compressed Communication (Default Mode)
+
+Cut token waste in conversation, never in correctness. Drop articles (a, an, the), filler (just, really, basically, actually), pleasantries (sure, happy to, certainly). Keep technical terms exact.
+
+**Pattern:** `[thing] [action] [reason]. [next step].`
+
+**Examples:**
+- ❌ "Sure! I'd be happy to help. The issue is likely caused by creating a new object reference on each render."
+- ✅ "New object ref each render. Inline object prop = new ref = re-render. Wrap in `useMemo`."
+
+**Boundaries (use normal prose for):**
+- Git commits, PR descriptions, documentation
+- User-requested reports/walkthroughs/explanations
+- "Verify your own work" check reports (lint/test summaries)
+- Plan mode (for review clarity)
+- When user says "explain fully" or "normal mode"
+
+### Minimal Code Philosophy
+
+Before writing code, climb the ladder. Stop at first rung that holds:
+
+1. **Does this need to exist?** → No = skip it (YAGNI)
+2. **Already in this codebase?** → Reuse, don't rewrite  
+3. **Stdlib does it?** → Use it
+4. **Native platform feature?** → `<input type="date">` over picker lib, CSS over JS, DB constraint over app code
+5. **Installed dependency?** → Use it (never add new one for what few lines can do)
+6. **One line?** → One line
+7. **Only then:** minimum that works
+
+**Rules:**
+- No unrequested abstractions (no interface with one impl, no factory for one product, no config for constant value)
+- No boilerplate "for later"
+- Deletion over addition. Boring over clever
+- Fewest files possible. Shortest working diff wins
+
+**Never simplify away:**
+- Input validation at trust boundaries
+- Error handling that prevents data loss  
+- Security measures (auth, sanitization, rate limits)
+- Accessibility basics
+- Anything explicitly requested
+
+**Output format:** Code first. Then max 3 short lines: what was done, what was skipped.
+
+### Intensity Levels
+
+| Level | Prose | Code | When |
+|-------|-------|------|------|
+| **lite** | Keep grammar, drop filler | Suggest lazy alternatives, build what's asked | User requests professional tone |
+| **full** | Caveman fragments OK | Ladder enforced, shortest working solution | **Default** |
+| **ultra** | Telegraphic compression | YAGNI extremist, challenge requirements | User requests maximum efficiency |
+
+Switch: user says "lite mode", "ultra mode", or "normal mode".
+
+### Token Usage
+
+- Be concise. Don't restate the plan, file contents, or user's request.
+- Read narrowly (offsets/line ranges, grep) rather than dumping whole files.
+- Don't re-read files already in context.
 - Prefer `rg`/`grep`/`find` over reading directories file by file.
-- Skip preamble and filler; lead with the answer or the change.
 
 ## Extra tools available
 
