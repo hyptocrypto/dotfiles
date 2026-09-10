@@ -96,6 +96,7 @@ See **[COMMANDS.md](COMMANDS.md)** for full documentation.
 Extensions in `extensions/` are auto-loaded by pi:
 - `btw.ts` - Quick questions (`/btw`)
 - `model-enhanced.ts` - Enhanced model picker (`/m`, `/pick`)
+- `branch-context.ts` - Auto-inject feature branch context (NEW)
 - `confirm-destructive.ts` - Confirm dangerous operations
 - `git-checkpoint.ts` - Auto-checkpoint on changes
 - `protected-paths.ts` - Block writes to sensitive files
@@ -104,7 +105,22 @@ Extensions in `extensions/` are auto-loaded by pi:
 - `todo.ts` - Todo list management
 - And more...
 
-See each `.ts` file for details.
+See each `.ts` file for details or `README-branch-context.md` for the branch context extension.
+
+### Branch Context Extension
+
+Auto-generates compressed branch context and injects it at chat start, saving time and tokens on long-running feature branches.
+
+**Features:**
+- Auto-detects current branch vs default branch
+- Generates ~2000 token compressed summary using scout agent
+- Caches with diff-based invalidation
+- Works with any base branch naming (main/master/development/etc)
+- Commands: `/branch-context`, `/refresh-branch-context`, `/set-branch-purpose`
+
+**Use case:** Working on a 16k+ line feature branch? Get instant context without manually explaining or diffing every chat.
+
+See [README-branch-context.md](extensions/README-branch-context.md) for full documentation.
 
 ## Updating
 

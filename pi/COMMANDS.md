@@ -11,6 +11,11 @@ This document describes custom commands added via extensions.
 
 **Quick questions:** Use `/btw <question>` for one-off questions to cheap models
 
+**Branch context:** Automatic feature branch context injection
+- `/branch-context` - Show current cached context
+- `/refresh-branch-context` - Regenerate context
+- `/set-branch-purpose "<purpose>"` - Set custom purpose
+
 ## Quick Questions
 
 ### `/btw <question>`
@@ -84,6 +89,148 @@ Thinking level for claude-sonnet-4-5:
 ```
 
 
+
+---
+
+## Branch Context (Auto-Injected)
+
+### Auto-Injection on Chat Start
+
+When working on a feature branch, context is automatically generated and injected at chat start. No manual setup needed.
+
+**How it works:**
+1. Detects you're on a feature branch (not main/master/development/etc)
+2. Loads cached context or generates fresh summary using scout agent
+3. Injects ~2000 token compressed summary into system prompt
+4. Shows notification: "Branch context loaded for feature-xyz"
+
+**Automatic detection:**
+- Finds base branch via origin/HEAD or common names (main, master, development, develop, dev)
+- Works with any repository's branch naming convention
+- Only activates on feature branches (skips if on default branch)
+
+### `/branch-context`
+
+Show the current cached context for your branch.
+
+**Example:**
+```
+You: "/branch-context"
+
+Agent:
+**Branch:** feature-api-v2
+**Base:** development
+**Cached:** 2024-01-15 14:32:11
+
+## Purpose
+Complete rewrite of REST API to v2 with GraphQL support...
+
+## Key Changes
+1. New API v2 implementation (28 files)
+2. Rate limiting system
+3. Authentication middleware refactor
+...
+```
+
+### `/refresh-branch-context`
+
+Force regeneration of branch context. Use after:
+- Merging main/development into your branch
+- Making major changes
+- Want fresher summary
+
+**Example:**
+```
+You: "/refresh-branch-context"
+
+Agent: "Regenerating context for feature-api-v2..."
+[Scout agent analyzes diff, commits, changed files]
+Agent: "✓ Context refreshed"
+[Shows updated context]
+```
+
+### `/set-branch-purpose "<purpose>"`
+
+Override the auto-detected branch purpose with a custom note. Useful for providing human context that git history doesn't capture.
+
+**Example:**
+```
+You: "/set-branch-purpose 'Rewrite auth system to use Redis sessions instead of JWT'"
+
+Agent: "✓ Updated purpose for feature-api-v2"
+```
+
+**Custom purpose persists:**
+- Saved in cache across chats
+- Included in context regeneration
+- Scout agent uses it when analyzing branch
+
+### Token Savings
+
+**Without extension (manual approach):**
+```
+You: "I'm working on the API v2 refactor. Run git diff development..."
+Agent: <reads 5000+ tokens of diff>
+You: "This branch rewrites the REST API to support..."
+[More back and forth]
+
+Total: ~6000 tokens before real work
+```
+
+**With extension (automatic):**
+```
+[Auto-injected at chat start]
+## Purpose: API v2 rewrite with GraphQL
+## Key Changes: [compressed summary]
+## Changed Files: [grouped by area]
+
+Total: ~2000 tokens, zero manual setup
+Savings: 70% fewer tokens
+```
+
+### Use Cases
+
+**Best for:**
+- ✅ Long-running feature branches (>1 week)
+- ✅ Large changes (1000+ lines, 10+ files)
+- ✅ Frequent chat context switches
+- ✅ Team members jumping into unfamiliar branches
+- ✅ Branches with complex purpose/architecture
+
+**Not needed for:**
+- ❌ Quick bug fixes (1-2 files)
+- ❌ On main/master/development branch
+- ❌ Experimental throwaway branches
+- ❌ Branches lasting <1 day
+
+### How It Works
+
+**First chat on branch:**
+1. Extension detects feature branch
+2. Computes diff hash: `md5(git diff base...feature)`
+3. Invokes scout agent with:
+   - Changed files list
+   - Diff stats
+   - Commit log
+   - Custom purpose (if set)
+4. Scout generates compressed summary (~2000 tokens)
+5. Caches in `~/.pi/branch-context/<branch>.json`
+6. Injects into system prompt
+
+**Subsequent chats:**
+1. Loads cached context (instant)
+2. Checks diff hash
+3. If unchanged: uses cache
+4. If changed: regenerates automatically
+
+**Cache invalidation:**
+- Diff hash changes → auto-regenerate
+- Manual `/refresh-branch-context` → force regenerate
+- Custom purpose change → regenerate on next refresh
+
+### Examples
+
+See `extensions/EXAMPLE-branch-context.md` for detailed scenarios with 16k+ line branches.
 
 ---
 
