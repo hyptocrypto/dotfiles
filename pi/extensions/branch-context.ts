@@ -408,9 +408,7 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 			}
 
 			const timestamp = new Date(cache.timestamp).toLocaleString();
-			ctx.ui.print(
-				`**Branch:** ${cache.branch}\n**Base:** ${cache.baseBranch}\n**Cached:** ${timestamp}\n\n${cache.context}`,
-			);
+			return `**Branch:** ${cache.branch}\n**Base:** ${cache.baseBranch}\n**Cached:** ${timestamp}\n\n${cache.context}`;
 		},
 	});
 
@@ -440,7 +438,7 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 			const { context } = await getBranchContext(branch, baseBranch, true);
 
 			ctx.ui.notify("✓ Context refreshed", "success");
-			ctx.ui.print(`**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`);
+			return `**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`;
 		},
 	});
 
