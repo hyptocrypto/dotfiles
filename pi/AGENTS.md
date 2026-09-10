@@ -155,6 +155,13 @@ Switch: user says "lite mode", "ultra mode", or "normal mode".
   fallback. Don't guess at external API behavior — look it up.
 - **subagent** — delegate to scout/planner/worker/reviewer (see below).
 
+## Test artifact cleanup
+
+Any scratch scripts/binaries/processes created to test or debug something must be
+cleaned up when done — no hanging background processes, no leftover files in
+the repo or home dir. Exception: files written under `/tmp` can be left for the
+OS to reap.
+
 ## Networking specifics
 
 When writing or reviewing networking code, always consider: context/timeout
