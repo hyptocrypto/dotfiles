@@ -46,8 +46,6 @@ copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
 copy_dir "$REPO_DIR/prompts" "$PI_DIR/prompts"
 copy_dir "$REPO_DIR/agents" "$PI_DIR/agents"
 
-pi install npm:pi-claude-subscription-connector
-
 echo
 echo "Done! Config copied to ~/.pi/agent/"
 echo

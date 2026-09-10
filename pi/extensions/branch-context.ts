@@ -266,18 +266,26 @@ START OUTPUT NOW (begin with ## Purpose):
 			anthropic: "claude-haiku-4-5",
 			"github-copilot": "gemini-3.8-flash",
 		};
-		const model = cheapModels[provider || "anthropic"] || "claude-haiku-4-5";
+		const resolvedProvider = provider && cheapModels[provider] ? provider : "anthropic";
+		const model = cheapModels[resolvedProvider];
 
-		// Invoke scout model via subprocess
+		// Invoke scout model via subprocess.
+		// Task is passed via stdin, not argv: some endpoint-security agents
+		// (e.g. SentinelOne) kill freshly-exec'd processes whose command-line
+		// arguments exceed ~1KB, which silently SIGKILLs `pi` for any
+		// non-trivial diff/task. Piping via stdin avoids that entirely.
 		return new Promise<string>((resolve) => {
-			const args = ["--model", model, "--print", "--", task];
+			const args = ["--provider", resolvedProvider, "--model", model, "--print"];
 			const child = spawn("pi", args, {
-				stdio: ["ignore", "pipe", "pipe"],
+				stdio: ["pipe", "pipe", "pipe"],
 				timeout: 60000, // 60 second timeout for large diffs
 			});
 
 			let stdout = "";
 			let stderr = "";
+
+			child.stdin?.write(task);
+			child.stdin?.end();
 
 			child.stdout?.on("data", (data) => {
 				stdout += data.toString();
