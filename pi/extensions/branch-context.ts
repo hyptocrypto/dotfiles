@@ -46,10 +46,10 @@ export default function (pi: ExtensionAPI) {
 	/**
 	 * Get current git branch
 	 */
-	function getCurrentBranch(): string | null {
+	async function getCurrentBranch(): Promise<string | null> {
 		try {
-			const result = pi.execSync("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
-			return result.stdout.trim() || null;
+			const { stdout } = await pi.exec("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+			return stdout.trim() || null;
 		} catch {
 			return null;
 		}
@@ -62,14 +62,14 @@ export default function (pi: ExtensionAPI) {
 	 * 2. Common names (main, master, development, develop)
 	 * 3. Fallback to first remote branch
 	 */
-	function getDefaultBranch(): string | null {
+	async function getDefaultBranch(): Promise<string | null> {
 		// Strategy 1: Check origin/HEAD
 		try {
-			const result = pi.execSync("git", [
+			const { stdout } = await pi.exec("git", [
 				"symbolic-ref",
 				"refs/remotes/origin/HEAD",
 			]);
-			const ref = result.stdout.trim();
+			const ref = stdout.trim();
 			if (ref) {
 				const branch = ref.replace(/^refs\/remotes\/origin\//, "");
 				if (branch) return branch;
@@ -82,7 +82,7 @@ export default function (pi: ExtensionAPI) {
 		const commonNames = ["main", "master", "development", "develop", "dev"];
 		for (const name of commonNames) {
 			try {
-				pi.execSync("git", ["rev-parse", "--verify", name]);
+				await pi.exec("git", ["rev-parse", "--verify", name]);
 				return name;
 			} catch {
 				// Branch doesn't exist, try next
@@ -91,13 +91,13 @@ export default function (pi: ExtensionAPI) {
 
 		// Strategy 3: Get first remote branch from origin
 		try {
-			const result = pi.execSync("git", [
+			const { stdout } = await pi.exec("git", [
 				"ls-remote",
 				"--symref",
 				"origin",
 				"HEAD",
 			]);
-			const match = result.stdout.match(/ref: refs\/heads\/(\S+)/);
+			const match = stdout.match(/ref: refs\/heads\/(\S+)/);
 			if (match) return match[1];
 		} catch {
 			// No remote
@@ -110,11 +110,13 @@ export default function (pi: ExtensionAPI) {
 	/**
 	 * Compute hash of the diff for cache invalidation
 	 */
-	function getDiffHash(branch: string, baseBranch: string): string | null {
+	async function getDiffHash(
+		branch: string,
+		baseBranch: string,
+	): Promise<string | null> {
 		try {
-			const result = pi.execSync("git", ["diff", `${baseBranch}...${branch}`]);
-			const diff = result.stdout;
-			return createHash("md5").update(diff).digest("hex");
+			const { stdout } = await pi.exec("git", ["diff", `${baseBranch}...${branch}`]);
+			return createHash("md5").update(stdout).digest("hex");
 		} catch {
 			return null;
 		}
@@ -160,12 +162,12 @@ export default function (pi: ExtensionAPI) {
 		// Get diff stats
 		let diffStats = "";
 		try {
-			const result = pi.execSync("git", [
+			const { stdout } = await pi.exec("git", [
 				"diff",
 				"--stat",
 				`${baseBranch}...${branch}`,
 			]);
-			diffStats = result.stdout;
+			diffStats = stdout;
 		} catch {
 			diffStats = "(unable to get diff stats)";
 		}
@@ -173,13 +175,13 @@ export default function (pi: ExtensionAPI) {
 		// Get recent commits
 		let commitLog = "";
 		try {
-			const result = pi.execSync("git", [
+			const { stdout } = await pi.exec("git", [
 				"log",
 				"--oneline",
 				`${baseBranch}..${branch}`,
 				"--max-count=15",
 			]);
-			commitLog = result.stdout;
+			commitLog = stdout;
 		} catch {
 			commitLog = "(no commits)";
 		}
@@ -187,12 +189,12 @@ export default function (pi: ExtensionAPI) {
 		// Get list of changed files with brief context
 		let changedFiles = "";
 		try {
-			const result = pi.execSync("git", [
+			const { stdout } = await pi.exec("git", [
 				"diff",
 				"--name-status",
 				`${baseBranch}...${branch}`,
 			]);
-			changedFiles = result.stdout;
+			changedFiles = stdout;
 		} catch {
 			changedFiles = "(unable to list changed files)";
 		}
@@ -276,7 +278,7 @@ Focus on what an engineer joining this work needs to know.
 		baseBranch: string,
 		forceRefresh = false,
 	): Promise<{ context: string; cached: boolean }> {
-		const diffHash = getDiffHash(branch, baseBranch);
+		const diffHash = await getDiffHash(branch, baseBranch);
 		if (!diffHash) {
 			return {
 				context: "(Unable to compute diff - are you in a git repository?)",
@@ -316,10 +318,10 @@ Focus on what an engineer joining this work needs to know.
 	 * Only injects if cache exists - user must run /refresh-branch-context first
 	 */
 	pi.on("chat_start", async (_event, ctx) => {
-		const branch = getCurrentBranch();
+		const branch = await getCurrentBranch();
 		if (!branch) return; // Not in a git repo
 
-		const baseBranch = getDefaultBranch();
+		const baseBranch = await getDefaultBranch();
 		if (!baseBranch || branch === baseBranch) {
 			return; // On default branch, no context needed
 		}
@@ -334,7 +336,7 @@ Focus on what an engineer joining this work needs to know.
 
 		try {
 			// Check if cache is still valid
-			const diffHash = getDiffHash(branch, baseBranch);
+			const diffHash = await getDiffHash(branch, baseBranch);
 			if (diffHash && cache.diffHash !== diffHash) {
 				// Cache invalid - notify but don't auto-regenerate
 				if (ctx.hasUI) {
@@ -384,13 +386,13 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 	pi.registerCommand("branch-context", {
 		description: "Show current branch context",
 		handler: async (_args, ctx) => {
-			const branch = getCurrentBranch();
+			const branch = await getCurrentBranch();
 			if (!branch) {
 				ctx.ui.notify("Not in a git repository", "warning");
 				return;
 			}
 
-			const baseBranch = getDefaultBranch();
+			const baseBranch = await getDefaultBranch();
 			if (!baseBranch || branch === baseBranch) {
 				ctx.ui.notify(`On default branch (${branch}), no context needed`, "info");
 				return;
@@ -399,12 +401,8 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 			const cache = loadCache(branch);
 			if (!cache) {
 				ctx.ui.notify(
-					`No context cached for ${branch}. Generating...`,
+					`No context cached for ${branch}. Run /refresh-branch-context to enable.`,
 					"info",
-				);
-				const { context } = await getBranchContext(branch, baseBranch);
-				ctx.ui.print(
-					`**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`,
 				);
 				return;
 			}
@@ -422,13 +420,13 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 	pi.registerCommand("refresh-branch-context", {
 		description: "Regenerate branch context summary",
 		handler: async (_args, ctx) => {
-			const branch = getCurrentBranch();
+			const branch = await getCurrentBranch();
 			if (!branch) {
 				ctx.ui.notify("Not in a git repository", "warning");
 				return;
 			}
 
-			const baseBranch = getDefaultBranch();
+			const baseBranch = await getDefaultBranch();
 			if (!baseBranch || branch === baseBranch) {
 				ctx.ui.notify(
 					`On default branch (${branch}), no context needed`,
@@ -452,7 +450,7 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 	pi.registerCommand("set-branch-purpose", {
 		description: "Set custom branch purpose note",
 		handler: async (args, ctx) => {
-			const branch = getCurrentBranch();
+			const branch = await getCurrentBranch();
 			if (!branch) {
 				ctx.ui.notify("Not in a git repository", "warning");
 				return;
@@ -472,8 +470,8 @@ Use \`/set-branch-purpose "<purpose>"\` to override inferred purpose.
 				ctx.ui.notify(`✓ Updated purpose for ${branch}`, "success");
 			} else {
 				// Create minimal cache entry
-				const baseBranch = getDefaultBranch() || "main";
-				const diffHash = getDiffHash(branch, baseBranch) || "";
+				const baseBranch = (await getDefaultBranch()) || "main";
+				const diffHash = (await getDiffHash(branch, baseBranch)) || "";
 				saveCache({
 					branch,
 					baseBranch,
