@@ -312,7 +312,8 @@ Focus on what an engineer joining this work needs to know.
 	}
 
 	/**
-	 * Hook: Inject context at chat start
+	 * Hook: Inject context at chat start (opt-in only)
+	 * Only injects if cache exists - user must run /refresh-branch-context first
 	 */
 	pi.on("chat_start", async (_event, ctx) => {
 		const branch = getCurrentBranch();
@@ -323,13 +324,32 @@ Focus on what an engineer joining this work needs to know.
 			return; // On default branch, no context needed
 		}
 
-		try {
-			const { context, cached } = await getBranchContext(branch, baseBranch);
+		// OPT-IN: Only inject if cache exists
+		// User must explicitly run /refresh-branch-context to enable
+		const cache = loadCache(branch);
+		if (!cache) {
+			// No cache - don't auto-generate, just skip
+			return;
+		}
 
+		try {
+			// Check if cache is still valid
+			const diffHash = getDiffHash(branch, baseBranch);
+			if (diffHash && cache.diffHash !== diffHash) {
+				// Cache invalid - notify but don't auto-regenerate
+				if (ctx.hasUI) {
+					ctx.ui.notify(
+						`Branch context outdated for ${branch}. Run /refresh-branch-context to update.`,
+						"warning",
+					);
+				}
+				return;
+			}
+
+			// Cache valid - inject it
 			if (ctx.hasUI) {
-				const status = cached ? "cached" : "generated";
 				ctx.ui.notify(
-					`Branch context ${status} for ${branch} (vs ${baseBranch})`,
+					`Branch context loaded for ${branch} (vs ${baseBranch})`,
 					"info",
 				);
 			}
@@ -340,7 +360,7 @@ Focus on what an engineer joining this work needs to know.
 
 You are working on branch: **${branch}** (vs **${baseBranch}**)
 
-${context}
+${cache.context}
 
 ---
 

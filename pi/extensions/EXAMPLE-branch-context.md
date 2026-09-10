@@ -27,30 +27,35 @@ Agent: "I see you've made extensive changes. Let me understand..."
 Total cost: 6000+ tokens before doing any real work
 ```
 
-### With Extension (New Way)
+### With Extension (New Way - Opt-In)
 
-First chat:
+First chat (no context yet):
 
 ```bash
 $ git checkout feature-api-v2
 $ pi
 
-[Auto-loads in 2 seconds]
-✓ Branch context generated for feature-api-v2 (vs development)
+[No auto-injection - opt-in required]
+
+You: "/refresh-branch-context"
+
+Agent: "Regenerating context for feature-api-v2..."
+[Scout agent analyzes branch - takes ~2-5 seconds]
+Agent: "✓ Context refreshed"
+[Shows generated context]
 
 You: "Add rate limiting to the user endpoint"
 
-Agent: [immediately understands the branch context and provides 
-        relevant implementation in api/v2/users.go]
+Agent: [understands branch context, provides implementation]
 ```
 
-Subsequent chats (same day):
+Subsequent chats (context enabled):
 
 ```bash
 $ pi
 
 [Auto-loads from cache instantly]
-✓ Branch context cached for feature-api-v2 (vs development)
+✓ Branch context loaded for feature-api-v2 (vs development)
 
 You: "Update the GraphQL schema to support pagination"
 
@@ -182,13 +187,19 @@ $ # ... make initial changes ...
 $ git commit -m "Initial API v2 structure"
 $ pi
 
+[No context yet - working without it for now]
+
+You: "Implement the user endpoint with GraphQL support"
+Agent: [works on implementation without branch context]
+
+# After a few days, branch is large enough to benefit from context:
 You: "/set-branch-purpose 'API v2 rewrite with GraphQL and rate limiting'"
 Agent: "✓ Set purpose for feature-api-v2"
 
-You: "Implement the user endpoint with GraphQL support"
-Agent: [works on implementation]
-
-[Extension auto-generates context at chat start using custom purpose]
+You: "/refresh-branch-context"
+Agent: "Regenerating context for feature-api-v2..."
+Agent: "✓ Context refreshed"
+[Context now enabled for future chats]
 ```
 
 Day 7 - Mid-feature work:
@@ -196,6 +207,7 @@ Day 7 - Mid-feature work:
 $ pi
 
 [Context auto-loaded from cache - instant]
+✓ Branch context loaded for feature-api-v2 (vs development)
 
 You: "Add pagination to the GraphQL user query"
 Agent: [context already available, starts immediately]

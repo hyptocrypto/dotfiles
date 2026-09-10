@@ -12,22 +12,37 @@ When working on long-running feature branches:
 
 ## Solution
 
-This extension:
+This extension (opt-in):
 1. **Auto-detects** current branch vs repository default branch
-2. **Generates** compressed context summary (~1500-2000 tokens)
+2. **Generates** compressed context summary (~1500-2000 tokens) when you enable it
 3. **Caches** results with diff-based invalidation
-4. **Injects** context automatically at chat start
-5. **Refreshes** only when branch changes significantly
+4. **Injects** context automatically once enabled
+5. **Refreshes** only when you manually trigger it
 
 ## Features
 
-### Automatic Context Injection
+### Opt-In Context Injection
 
-When you start a chat on a feature branch, the extension:
-- Detects you're not on the default branch
-- Loads cached context or generates fresh summary
+The extension uses an **opt-in model** - it only injects context if you've explicitly enabled it.
+
+**First time on a feature branch:**
+- No context injected automatically
+- Run `/refresh-branch-context` to generate and enable
+
+**Subsequent chats (after enabling):**
+- Loads cached context automatically
 - Injects into system prompt before first message
 - Shows notification: "Branch context loaded for feature-xyz"
+
+**If branch changes significantly:**
+- Shows warning: "Branch context outdated"
+- Run `/refresh-branch-context` to update
+
+**Why opt-in?**
+- Small branches don't need context overhead
+- Quick bug fixes don't benefit from compression
+- You control when scout agent runs
+- No surprise token costs
 
 ### Smart Base Branch Detection
 
@@ -164,11 +179,20 @@ pi --extension branch-context
 1. Check `git rev-parse --abbrev-ref HEAD` → current branch
 2. Detect default branch (origin/HEAD or common names)
 3. If on feature branch:
-   - Compute diff hash: `md5(git diff base...feature)`
    - Check cache: `~/.pi/branch-context/<branch>.json`
-   - If cache valid (hash matches): use cached context
-   - If cache invalid/missing: invoke scout agent
+   - If **no cache exists**: skip (opt-in not enabled yet)
+   - If **cache exists**: verify diff hash
+     - Hash matches → inject cached context
+     - Hash changed → show warning, skip injection
 4. Inject context into system prompt via `ctx.addSystemMessage()`
+
+### When You Run `/refresh-branch-context`
+
+1. Compute diff hash: `md5(git diff base...feature)`
+2. Invoke scout agent to generate summary
+3. Save to cache with hash
+4. Display generated context
+5. Future chats auto-inject this cached context
 
 ### Scout Agent Task
 

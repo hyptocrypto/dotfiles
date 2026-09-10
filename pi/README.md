@@ -109,16 +109,18 @@ See each `.ts` file for details or `README-branch-context.md` for the branch con
 
 ### Branch Context Extension
 
-Auto-generates compressed branch context and injects it at chat start, saving time and tokens on long-running feature branches.
+Opt-in compressed branch context that injects automatically once enabled. Saves time and tokens on long-running feature branches.
 
 **Features:**
-- Auto-detects current branch vs default branch
+- Opt-in: only injects if you've enabled it via `/refresh-branch-context`
 - Generates ~2000 token compressed summary using scout agent
 - Caches with diff-based invalidation
 - Works with any base branch naming (main/master/development/etc)
 - Commands: `/branch-context`, `/refresh-branch-context`, `/set-branch-purpose`
 
-**Use case:** Working on a 16k+ line feature branch? Get instant context without manually explaining or diffing every chat.
+**Workflow:** Run `/refresh-branch-context` once to enable. Future chats auto-inject cached context.
+
+**Use case:** Working on a 16k+ line feature branch? Enable context once, get instant injection every chat.
 
 See [README-branch-context.md](extensions/README-branch-context.md) for full documentation.
 

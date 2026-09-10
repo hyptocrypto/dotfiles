@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implemented a production-ready extension for pi (coding agent) that auto-generates and injects compressed feature branch context at chat start, solving the token-waste problem for long-running feature branches.
+Implemented a production-ready extension for pi (coding agent) that provides opt-in compressed feature branch context, solving the token-waste problem for long-running feature branches.
 
 ## Problem Solved
 
@@ -16,9 +16,10 @@ When working on large feature branches (e.g., 16k+ line changes over weeks):
 
 **Extension: `branch-context.ts`**
 - Auto-detects feature branches vs default branch
+- Opt-in model: only injects if user enables it
 - Generates ~2000 token compressed summary via scout agent
 - Caches with diff-based invalidation
-- Injects context automatically at chat start
+- Injects context automatically once enabled
 - Provides commands for manual control
 
 ## Key Features
@@ -69,14 +70,23 @@ if (cache && cache.diffHash === diffHash) {
 
 Cache location: `~/.pi/branch-context/<branch-name>.json`
 
-### 4. Auto-Injection
+### 4. Opt-In Auto-Injection
 ```typescript
 pi.on("chat_start", async (_event, ctx) => {
   const branch = getCurrentBranch();
   const baseBranch = getDefaultBranch();
   
   if (branch !== baseBranch) {
-    const { context } = await getBranchContext(branch, baseBranch);
+    const cache = loadCache(branch);
+    if (!cache) return; // Skip if not enabled
+    
+    // Verify cache is still valid
+    const diffHash = getDiffHash(branch, baseBranch);
+    if (diffHash !== cache.diffHash) {
+      ctx.ui.notify("Branch context outdated. Run /refresh-branch-context", "warning");
+      return;
+    }
+    
     ctx.addSystemMessage(branchContext);
   }
 });
@@ -147,11 +157,24 @@ Extension (chat_start hook)
   ↓
 Branch detection (git commands)
   ↓
-Cache check (diff hash validation)
+Cache check (exists?)
+  ↓ NO → Skip (opt-in not enabled)
+  ↓ YES
+Diff hash validation
+  ↓ Valid → Inject context
+  ↓ Invalid → Show warning, skip
+
+---
+
+User runs /refresh-branch-context
   ↓
-Scout agent (if cache miss/invalid)
+Scout agent (generate summary)
   ↓
-Context injection (system message)
+Save to cache with diff hash
+  ↓
+Display context
+  ↓
+Future chats auto-inject
 ```
 
 ### Key Functions
@@ -201,27 +224,46 @@ Copies extension to `~/.pi/agent/extensions/branch-context.ts`.
 ### Day 1 - Feature Start
 ```bash
 $ git checkout -b feature-api-v2 development
+$ # ... make some commits ...
 $ pi
-You: "/set-branch-purpose 'API v2 with GraphQL and rate limiting'"
+[No context yet - working without it]
+
 You: "Implement user endpoint with GraphQL"
-[Extension auto-generates context, agent understands immediately]
+[Works normally without context]
 ```
 
-### Day 7 - Mid-Feature
+### Day 7 - Mid-Feature (Enable Context)
 ```bash
 $ pi
-[Context loaded from cache - instant]
+[Branch is large now, enable context]
+
+You: "/refresh-branch-context"
+[Scout generates summary - ~2-5 seconds]
+Agent: "✓ Context refreshed"
+
 You: "Add pagination to GraphQL queries"
 [Agent has full context, starts immediately]
 ```
 
-### Day 14 - After Merge
+### Day 14 - Subsequent Chat (Auto-Inject)
+```bash
+$ pi
+[Context auto-loaded from cache - instant]
+✓ Branch context loaded for feature-api-v2 (vs development)
+
+You: "Add rate limiting to GraphQL"
+[Context already available]
+```
+
+### Day 21 - After Merge
 ```bash
 $ git merge development
 $ pi
+[Cache outdated]
+⚠ Branch context outdated. Run /refresh-branch-context to update.
+
 You: "/refresh-branch-context"
 [Context regenerated with merged changes]
-```
 
 ## Edge Cases Handled
 
@@ -271,6 +313,7 @@ Not implemented, but could add:
   - Handles 16k+ line branches (2000 token budget)
   - Edits in repo (pi/extensions/) not ~/.pi
   - Re-installable via install.sh
+  - Opt-in model (only runs when explicitly enabled)
 
 ✅ Code quality:
   - TypeScript with proper types
@@ -301,8 +344,9 @@ Not implemented, but could add:
 ## Summary
 
 Delivered production-ready extension that:
-- Saves 70% tokens on feature branch work
-- Eliminates manual context setup
+- Saves 70% tokens on feature branch work (when enabled)
+- Opt-in model: no overhead unless you want it
+- Eliminates manual context setup once enabled
 - Scales to large branches (16k+ lines)
 - Works with any repository (auto-detects base branch)
 - Fully documented with examples

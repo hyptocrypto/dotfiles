@@ -92,17 +92,24 @@ Thinking level for claude-sonnet-4-5:
 
 ---
 
-## Branch Context (Auto-Injected)
+## Branch Context (Opt-In)
 
-### Auto-Injection on Chat Start
+### How It Works
 
-When working on a feature branch, context is automatically generated and injected at chat start. No manual setup needed.
+The extension uses an **opt-in model** - context only injects if you've explicitly enabled it for a branch.
 
-**How it works:**
-1. Detects you're on a feature branch (not main/master/development/etc)
-2. Loads cached context or generates fresh summary using scout agent
-3. Injects ~2000 token compressed summary into system prompt
-4. Shows notification: "Branch context loaded for feature-xyz"
+**First time on a feature branch:**
+1. No context injected automatically
+2. Run `/refresh-branch-context` to generate and enable
+
+**Subsequent chats (after enabling):**
+1. Loads cached context automatically
+2. Injects ~2000 token compressed summary into system prompt
+3. Shows notification: "Branch context loaded for feature-xyz"
+
+**If branch changes significantly:**
+1. Shows warning: "Branch context outdated"
+2. Run `/refresh-branch-context` to update
 
 **Automatic detection:**
 - Finds base branch via origin/HEAD or common names (main, master, development, develop, dev)
@@ -134,10 +141,17 @@ Complete rewrite of REST API to v2 with GraphQL support...
 
 ### `/refresh-branch-context`
 
-Force regeneration of branch context. Use after:
-- Merging main/development into your branch
-- Making major changes
-- Want fresher summary
+Generate or regenerate branch context.
+
+**First use on a branch:**
+- Enables context injection for this branch
+- Generates compressed summary via scout agent
+- Saves to cache
+
+**Subsequent uses:**
+- Force regeneration after major changes
+- Update after merging main/development
+- Refresh if context feels stale
 
 **Example:**
 ```
