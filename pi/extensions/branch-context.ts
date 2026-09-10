@@ -157,11 +157,13 @@ export default function (pi: ExtensionAPI) {
 
 	/**
 	 * Generate compressed branch context using scout agent
+	 * @param provider - Current provider (for model selection)
 	 */
 	async function generateContext(
 		branch: string,
 		baseBranch: string,
 		customPurpose?: string,
+		provider?: string,
 	): Promise<string> {
 		// Get diff stats
 		let diffStats = "";
@@ -259,10 +261,16 @@ Focus on what an engineer joining this work needs to know.
 START OUTPUT NOW (begin with ## Purpose):
 `.trim();
 
+		// Select appropriate cheap model based on provider
+		const cheapModels: Record<string, string> = {
+			anthropic: "claude-haiku-4-5",
+			"github-copilot": "gemini-3.8-flash",
+		};
+		const model = cheapModels[provider || "anthropic"] || "claude-haiku-4-5";
+
 		// Invoke scout model via subprocess
-		// Use haiku-4-5 (cheap, fast) - same model as scout agent
 		return new Promise<string>((resolve) => {
-			const args = ["--model", "claude-haiku-4-5", "--print", "--", task];
+			const args = ["--model", model, "--print", "--", task];
 			const child = spawn("pi", args, {
 				stdio: ["ignore", "pipe", "pipe"],
 				timeout: 60000, // 60 second timeout for large diffs
@@ -313,11 +321,13 @@ START OUTPUT NOW (begin with ## Purpose):
 
 	/**
 	 * Get or generate branch context
+	 * @param provider - Current provider (for model selection)
 	 */
 	async function getBranchContext(
 		branch: string,
 		baseBranch: string,
 		forceRefresh = false,
+		provider?: string,
 	): Promise<{ context: string; cached: boolean }> {
 		const diffHash = await getDiffHash(branch, baseBranch);
 		if (!diffHash) {
@@ -339,6 +349,7 @@ START OUTPUT NOW (begin with ## Purpose):
 			branch,
 			baseBranch,
 			cache?.customPurpose,
+			provider,
 		);
 
 		// Save to cache
@@ -507,7 +518,9 @@ ${cache.context}
 
 			ctx.ui.notify(`Regenerating context for ${branch}...`, "info");
 
-			const { context } = await getBranchContext(branch, baseBranch, true);
+			// Get current provider for model selection
+			const provider = ctx.model?.provider || "anthropic";
+			const { context } = await getBranchContext(branch, baseBranch, true, provider);
 
 			ctx.ui.notify("✓ Context refreshed", "success");
 			return `**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`;
