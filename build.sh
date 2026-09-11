@@ -3,7 +3,7 @@
 # Install brew and packages
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install vim neovim clicklick imagemagick git lsd bat git-delta gh lazygit lazydocker k9s uv go python@3.13 sqlite btop fzf
-brew install --cask spotify brave-browser ghostty raycast karabiner-elements visual-studio-code
+brew install --cask spotify brave-browser wezterm raycast karabiner-elements visual-studio-code
 
 # Shell stuff
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"

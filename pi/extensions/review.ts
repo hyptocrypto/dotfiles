@@ -7,8 +7,24 @@
  * Runs entirely locally - no GitHub/Copilot/CodeRabbit round-trip.
  */
 
-import { spawn } from "node:child_process";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import { BorderedLoader, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
+import { Box, Markdown, Text } from "@earendil-works/pi-tui";
+
+interface ReviewEntryData {
+	branch: string;
+	baseBranch: string;
+	focus?: string;
+	modelId: string;
+	filesChanged: number;
+	diffChars: number;
+	truncated: boolean;
+	tokens: number;
+	cost: number;
+	durationMs: number;
+	review: string;
+	timestamp: number;
+}
 
 // Cap diff size sent to the review model (chars, not tokens)
 const MAX_DIFF_CHARS = 60000;
@@ -20,6 +36,31 @@ const REVIEW_MODELS: Record<string, string> = {
 };
 
 export default function (pi: ExtensionAPI) {
+	pi.registerEntryRenderer<ReviewEntryData>("review-result", (entry, _options, theme) => {
+		const d = entry.data;
+		const box = new Box(1, 1, (text) => theme.bg("customMessageBg", text));
+		if (!d) {
+			box.addChild(new Text(theme.fg("dim", "(no review data)"), 0, 0));
+			return box;
+		}
+
+		const header = [
+			`${theme.fg("accent", theme.bold("Local PR Review"))} ${theme.fg("dim", `${d.branch} vs ${d.baseBranch}`)}`,
+			theme.fg(
+				"dim",
+				`model=${d.modelId}  files=${d.filesChanged}  diff=${d.diffChars} chars${d.truncated ? " (truncated)" : ""}  ` +
+					`tokens=${d.tokens}  cost=$${d.cost.toFixed(4)}  time=${(d.durationMs / 1000).toFixed(1)}s`,
+			),
+		];
+		if (d.focus) {
+			header.push(theme.fg("dim", `focus: ${d.focus}`));
+		}
+		box.addChild(new Text(header.join("\n"), 0, 0));
+		box.addChild(new Markdown(d.review, 0, 1, getMarkdownTheme()));
+
+		return box;
+	});
+
 	async function getCurrentBranch(): Promise<string | null> {
 		try {
 			const { stdout } = await pi.exec("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
@@ -52,47 +93,71 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	/**
-	 * Run `pi --print` as a subprocess, feeding the task via stdin.
-	 *
-	 * Task must go over stdin, not argv: on machines running endpoint
-	 * security agents (e.g. SentinelOne), a long command-line argument
-	 * (~1KB+) gets the freshly-exec'd process SIGKILLed before it runs.
+	 * Run the review directly in-process via the model registry (no
+	 * subprocess). Shows a live bordered spinner in interactive mode; falls
+	 * back to a plain notify in non-interactive/print/RPC mode.
 	 */
-	function runReviewModel(task: string, provider: string): Promise<string> {
-		const model = REVIEW_MODELS[provider] || REVIEW_MODELS.anthropic;
+	async function runReviewModel(
+		task: string,
+		provider: string,
+		ctx: ExtensionCommandContext,
+	): Promise<{ text: string; tokens: number; cost: number }> {
+		const modelId = REVIEW_MODELS[provider] || REVIEW_MODELS.anthropic;
+		const model = ctx.modelRegistry.find(provider, modelId);
+		if (!model) {
+			return { text: `(Model ${provider}/${modelId} not found)`, tokens: 0, cost: 0 };
+		}
+		if (!ctx.modelRegistry.hasConfiguredAuth(model)) {
+			return { text: `(No authentication configured for ${provider}/${modelId})`, tokens: 0, cost: 0 };
+		}
 
-		return new Promise<string>((resolve) => {
-			const child = spawn("pi", ["--provider", provider, "--model", model, "--print"], {
-				stdio: ["pipe", "pipe", "pipe"],
-				timeout: 120000,
-			});
+		const context = {
+			systemPrompt: "You are a senior engineer performing a local PR review.",
+			messages: [
+				{
+					role: "user" as const,
+					content: [{ type: "text" as const, text: task }],
+					timestamp: Date.now(),
+				},
+			],
+		};
 
-			let stdout = "";
-			let stderr = "";
-
-			child.stdin?.write(task);
-			child.stdin?.end();
-
-			child.stdout?.on("data", (data) => (stdout += data.toString()));
-			child.stderr?.on("data", (data) => (stderr += data.toString()));
-
-			child.on("error", (error) => resolve(`(Failed to spawn pi: ${error.message})`));
-
-			child.on("close", (code) => {
-				if (code === 0 && stdout.trim()) {
-					resolve(stdout.trim());
-				} else {
-					resolve(`(Review failed: ${stderr || `process exited with code ${code}`})`);
+		const runComplete = async (signal?: AbortSignal) => {
+			try {
+				const response = await ctx.modelRegistry.complete(model, context, { signal });
+				if (response.stopReason === "aborted") {
+					return { text: "(Review cancelled)", tokens: 0, cost: 0 };
 				}
-			});
+				const text = response.content
+					.filter((c): c is { type: "text"; text: string } => c.type === "text")
+					.map((c) => c.text)
+					.join("\n")
+					.trim();
+				return {
+					text: text || "(Empty response from model)",
+					tokens: response.usage?.totalTokens ?? 0,
+					cost: response.usage?.cost?.total ?? 0,
+				};
+			} catch (error) {
+				return { text: `(Review failed: ${error})`, tokens: 0, cost: 0 };
+			}
+		};
 
-			setTimeout(() => {
-				if (!child.killed) {
-					child.kill();
-					resolve("(Review timed out after 120 seconds)");
-				}
-			}, 120000);
-		});
+		// Interactive mode: show a live cancellable spinner.
+		if (ctx.mode === "tui") {
+			return ctx.ui.custom((tui, theme, _kb, done) => {
+				const loader = new BorderedLoader(tui, theme, `Reviewing with ${model.id}...`, {
+					cancellable: true,
+				});
+				loader.onAbort = () => done({ text: "(Review cancelled)", tokens: 0, cost: 0 });
+				runComplete(loader.signal).then(done);
+				return loader;
+			});
+		}
+
+		// Non-interactive (print/RPC): no spinner widget available, just run it.
+		ctx.ui.notify(`Reviewing with ${model.id}...`, "info");
+		return runComplete();
 	}
 
 	pi.registerCommand("review", {
@@ -104,7 +169,19 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			const baseBranch = args?.trim() || (await getDefaultBranch());
+			// args is free-form review focus/instructions, e.g.
+			// "/review pay close attention to auth checks". It is never a
+			// branch name - base branch is always auto-detected. Use
+			// "--base <branch>" to override the base branch explicitly.
+			let focus = args?.trim() || "";
+			let baseOverride: string | undefined;
+			const baseMatch = focus.match(/(?:^|\s)--base[= ](\S+)/);
+			if (baseMatch) {
+				baseOverride = baseMatch[1];
+				focus = focus.replace(baseMatch[0], "").trim();
+			}
+
+			const baseBranch = baseOverride || (await getDefaultBranch());
 			if (!baseBranch) {
 				ctx.ui.notify("Could not determine base branch", "warning");
 				return;
@@ -114,7 +191,7 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			ctx.ui.notify(`Reviewing ${branch} vs ${baseBranch}...`, "info");
+			ctx.ui.notify(`Computing diff for ${branch} vs ${baseBranch}...`, "info");
 
 			let diff = "";
 			let truncated = false;
@@ -137,6 +214,23 @@ export default function (pi: ExtensionAPI) {
 				ctx.ui.notify(`No diff between ${branch} and ${baseBranch}`, "info");
 				return;
 			}
+
+			let filesChanged = 0;
+			try {
+				const { stdout } = await pi.exec("git", [
+					"diff",
+					"--name-only",
+					`${baseBranch}...${branch}`,
+				]);
+				filesChanged = stdout.split("\n").filter((l) => l.trim()).length;
+			} catch {
+				filesChanged = 0;
+			}
+
+			ctx.ui.notify(
+				`Diff: ${filesChanged} file(s), ${diff.length} chars${truncated ? ` (truncated from larger diff, capped at ${MAX_DIFF_CHARS})` : ""}`,
+				"info",
+			);
 
 			let commitLog = "";
 			try {
@@ -179,6 +273,7 @@ ${commitLog}
 ${diff}
 \`\`\`
 ${truncated ? "\n(Diff truncated - review covers only the first part of the changes.)\n" : ""}
+${focus ? `\n**Additional reviewer focus (from user):** ${focus}\n` : ""}
 
 OUTPUT FORMAT (start immediately, no preamble):
 
@@ -194,10 +289,33 @@ Anything ambiguous that needs clarification before merge (omit section if none).
 `.trim();
 
 			const provider = ctx.model?.provider || "github-copilot";
-			const review = await runReviewModel(task, provider);
+			const modelId = REVIEW_MODELS[provider] || REVIEW_MODELS.anthropic;
+			ctx.ui.notify(
+				`Sending diff to ${provider}/${modelId} for review (this can take 10-60s for large diffs)...`,
+				"info",
+			);
 
-			ctx.ui.notify("✓ Review complete", "success");
-			return `**Review:** ${branch} vs ${baseBranch}${truncated ? " _(diff truncated)_" : ""}\n\n${review}`;
+			const startedAt = Date.now();
+			const { text: review, tokens, cost } = await runReviewModel(task, provider, ctx);
+			const durationMs = Date.now() - startedAt;
+
+			pi.appendEntry<ReviewEntryData>("review-result", {
+				branch,
+				baseBranch,
+				focus: focus || undefined,
+				modelId,
+				filesChanged,
+				diffChars: diff.length,
+				truncated,
+				tokens,
+				cost,
+				durationMs,
+				review,
+				timestamp: Date.now(),
+			});
+
+			const usageLine = tokens ? ` (${tokens} tokens, $${cost.toFixed(4)}, ${(durationMs / 1000).toFixed(1)}s)` : "";
+			ctx.ui.notify(`✓ Review complete${usageLine}`, "success");
 		},
 	});
 }
