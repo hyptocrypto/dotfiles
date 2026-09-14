@@ -83,7 +83,23 @@ This detects which provider you're authenticated with and configures agents acco
 - Re-run `install.sh` to update from repo
 - Run `switch-agents.sh` after install to configure for your provider
 
-## Custom Commands
+## Extensions & Tools
+
+### LeanCTX (Context Compression)
+
+**Automatically reduces token usage by 40-50%** (real-world results on large codebases).
+
+Compresses file reads, shell output, and conversation context before sending to the model.
+
+**Installation:**
+```bash
+cd ~/dev/dotfiles/pi
+./setup-leanctx.sh
+```
+
+**See:** [LEANCTX.md](LEANCTX.md) for details.
+
+### Custom Commands
 
 **New custom commands added:**
 - `/btw <question>` - Quick questions to cheap model (non-blocking)

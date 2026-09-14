@@ -46,6 +46,29 @@ copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
 copy_dir "$REPO_DIR/prompts" "$PI_DIR/prompts"
 copy_dir "$REPO_DIR/agents" "$PI_DIR/agents"
 
+# Optional: Install LeanCTX
+if ! command -v lean-ctx &>/dev/null; then
+    echo
+    read -p "Install LeanCTX for automatic token compression? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        "$REPO_DIR/setup-leanctx.sh"
+    fi
+else
+    echo
+    echo "LeanCTX already installed (lean-ctx $(lean-ctx --version 2>/dev/null || echo 'version unknown'))"
+    # Ensure aggressive compression is set
+    CONFIG_FILE="$PI_DIR/extensions/pi-lean-ctx/config.json"
+    if [ -f "$CONFIG_FILE" ]; then
+        if grep -q '"LEAN_CTX_COMPRESSION_LEVEL": "lite"' "$CONFIG_FILE"; then
+            echo "  Updating compression to aggressive..."
+            sed -i.bak 's/"LEAN_CTX_COMPRESSION_LEVEL": "lite"/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"/g' "$CONFIG_FILE"
+            rm -f "${CONFIG_FILE}.bak"
+            echo "  ✓ Compression set to aggressive"
+        fi
+    fi
+fi
+
 echo
 echo "Done! Config copied to ~/.pi/agent/"
 echo
