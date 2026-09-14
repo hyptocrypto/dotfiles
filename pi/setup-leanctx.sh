@@ -30,26 +30,38 @@ else
     exit 1
 fi
 
-# Set aggressive compression
+# Apply recommended configuration
 echo ""
-echo "🔧 Setting aggressive compression..."
+echo "🔧 Applying recommended configuration..."
 CONFIG_FILE="$HOME/.pi/agent/extensions/pi-lean-ctx/config.json"
+TEMPLATE_FILE="$(cd "$(dirname "$0")" && pwd)/leanctx-config-template.json"
 
-if [ -f "$CONFIG_FILE" ]; then
-    # Update compression level to aggressive
+if [ -f "$TEMPLATE_FILE" ]; then
+    # Use our template configuration
+    mkdir -p "$(dirname "$CONFIG_FILE")"
+    cp "$TEMPLATE_FILE" "$CONFIG_FILE"
+    echo "✓ Configuration applied from template"
+    echo "  - Compression: aggressive"
+    echo "  - Mode: replace (forces ctx_* tool usage)"
+elif [ -f "$CONFIG_FILE" ]; then
+    # Template not found, patch existing config
+    echo "⚠️  Template not found, patching existing config..."
     if command -v jq &>/dev/null; then
-        # Use jq for safe JSON editing
         TMP=$(mktemp)
-        jq '.env.LEAN_CTX_COMPRESSION_LEVEL = "aggressive"' "$CONFIG_FILE" > "$TMP"
+        jq '.env.LEAN_CTX_COMPRESSION_LEVEL = "aggressive" | .env.LEAN_CTX_PI_MODE = "replace"' "$CONFIG_FILE" > "$TMP"
         mv "$TMP" "$CONFIG_FILE"
     else
-        # Fallback: sed replacement
-        sed -i.bak 's/"LEAN_CTX_COMPRESSION_LEVEL": "lite"/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"/g' "$CONFIG_FILE"
+        sed -i.bak 's/"LEAN_CTX_COMPRESSION_LEVEL": "[^"]*"/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"/g' "$CONFIG_FILE"
+        if ! grep -q 'LEAN_CTX_PI_MODE' "$CONFIG_FILE"; then
+            # Add PI_MODE after COMPRESSION_LEVEL
+            sed -i.bak 's/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive",/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive",\n    "LEAN_CTX_PI_MODE": "replace",/' "$CONFIG_FILE"
+        fi
         rm -f "${CONFIG_FILE}.bak"
     fi
-    echo "✓ Compression set to aggressive"
+    echo "✓ Configuration patched"
 else
-    echo "⚠️  Config file not found, will be created on first pi run"
+    echo "⚠️  Config file will be created on first pi run"
+    echo "    Run this script again after starting pi once"
 fi
 
 # Verify installation
@@ -66,12 +78,15 @@ echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Restart pi (to load new configuration)"
-echo "  2. Use pi normally - compression is automatic"
+echo "  2. Use pi normally - ctx_* tools used automatically"
 echo "  3. After session, check savings: lean-ctx gain"
 echo ""
 echo "Configuration:"
 echo "  - Compression level: aggressive (maximum savings)"
-echo "  - Auto-compression: enabled for all reads/shell commands"
+echo "  - Mode: replace (forces ctx_* tools, disables native read/bash)"
 echo "  - Expected savings: 40-50% typical, more with cached re-reads"
+echo ""
+echo "IMPORTANT: Replace mode ensures compression actually happens."
+echo "Pi MUST use ctx_* tools - no native tools available."
 echo ""
 echo "Documentation: $HOME/dev/dotfiles/pi/LEANCTX.md"

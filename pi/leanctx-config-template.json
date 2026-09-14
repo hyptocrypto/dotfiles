@@ -1,0 +1,8 @@
+{
+  "env": {
+    "LEAN_CTX_COMPRESSION_LEVEL": "aggressive",
+    "LEAN_CTX_SAVINGS_FOOTER": "never",
+    "LEAN_CTX_PI_MODE": "replace"
+  },
+  "routeShell": true
+}

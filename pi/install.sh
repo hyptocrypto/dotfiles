@@ -57,14 +57,22 @@ if ! command -v lean-ctx &>/dev/null; then
 else
     echo
     echo "LeanCTX already installed (lean-ctx $(lean-ctx --version 2>/dev/null || echo 'version unknown'))"
-    # Ensure aggressive compression is set
+    # Ensure aggressive compression and replace mode are set
     CONFIG_FILE="$PI_DIR/extensions/pi-lean-ctx/config.json"
+    TEMPLATE_FILE="$REPO_DIR/leanctx-config-template.json"
     if [ -f "$CONFIG_FILE" ]; then
-        if grep -q '"LEAN_CTX_COMPRESSION_LEVEL": "lite"' "$CONFIG_FILE"; then
-            echo "  Updating compression to aggressive..."
-            sed -i.bak 's/"LEAN_CTX_COMPRESSION_LEVEL": "lite"/"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"/g' "$CONFIG_FILE"
-            rm -f "${CONFIG_FILE}.bak"
-            echo "  ✓ Compression set to aggressive"
+        NEEDS_UPDATE=false
+        if ! grep -q '"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"' "$CONFIG_FILE"; then
+            NEEDS_UPDATE=true
+        fi
+        if ! grep -q '"LEAN_CTX_PI_MODE": "replace"' "$CONFIG_FILE"; then
+            NEEDS_UPDATE=true
+        fi
+        
+        if [ "$NEEDS_UPDATE" = true ] && [ -f "$TEMPLATE_FILE" ]; then
+            echo "  Updating LeanCTX config to recommended settings..."
+            cp "$TEMPLATE_FILE" "$CONFIG_FILE"
+            echo "  ✓ Config updated (aggressive compression + replace mode)"
         fi
     fi
 fi
