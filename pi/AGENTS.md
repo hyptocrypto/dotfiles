@@ -144,6 +144,27 @@ Switch: user says "lite mode", "ultra mode", or "normal mode".
 - Don't re-read files already in context.
 - Prefer `rg`/`grep`/`find` over reading directories file by file.
 
+## Context Compression (LeanCTX)
+
+**Always use ctx_* tools for reading files and running commands.**
+
+These tools are compressed before reaching the model, reducing token usage by 40-70%:
+
+- **ctx_read** `<path>` — Read files (instead of native `read`)
+- **ctx_shell** `<command>` — Run shell commands (instead of native `bash`)
+- **ctx_search** `<pattern>` — Search code (instead of `grep`)
+- **ctx_glob** `<pattern>` — List files (instead of `glob`)
+- **ctx_tree** `<path>` — Show directory tree
+
+**Critical:** Native `read`/`bash` tools are disabled. You MUST use `ctx_*` variants.
+
+**Why:** Automatic compression reduces tokens dramatically:
+- First read: 40-50% savings
+- Cached re-read: 95% savings (tiny reference)
+- Shell output: 60-90% savings
+
+Use these tools exactly as you would use native tools. Compression is transparent.
+
 ## Extra tools available
 
 - **question** — ask the user a question with selectable options (they can pick
