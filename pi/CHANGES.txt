@@ -1,0 +1,71 @@
+Pi Configuration Simplification — Changes Applied
+
+✅ COMPLETED CHANGES:
+
+1. AGENTS.md — LeanCTX Section Simplified
+   - Before: 15 lines of detailed instructions
+   - After: 2 lines stating compression benefits
+   - Location: ~/.pi/agent/AGENTS.md
+   - Tokens saved: ~200 per session load
+
+2. Removed Custom Extensions (replaced with npm packages)
+   - ❌ todo.ts → ✅ @juicesharp/rpiv-todo (165K dl/mo)
+   - ❌ btw.ts → ✅ @narumitw/pi-btw (39K dl/mo)
+   - Files deleted from both ~/.pi/agent/extensions and dotfiles/pi/extensions
+
+3. Simplified setup-leanctx.sh
+   - Before: 100+ lines of manual config manipulation
+   - After: 57 lines using `lean-ctx wrap pi`
+   - Now uses official auto-configuration
+   - Cleaner, easier to maintain
+
+4. Updated install.sh
+   - Added automatic npm extension installation
+   - Installs @juicesharp/rpiv-todo and @narumitw/pi-btw
+   - Shows clear extension categories
+
+5. Updated Documentation
+   - README.md: Updated extensions section
+   - Created MIGRATION.md: Migration guide
+   - Created SIMPLIFICATION-SUMMARY.md: Detailed summary
+   - Created CHANGES.txt: This file
+
+KEPT CUSTOM EXTENSIONS (unique value):
+✓ branch-context.ts — Token-budgeted summaries, no npm equivalent
+✓ review.ts — Pi TUI integration, superior to MCP alternatives
+✓ model-enhanced.ts — Cost info + thinking levels
+✓ auto-provider-config.ts — Auto-sync convenience
+✓ protected-paths.ts — Simple and customizable
+
+FILES CHANGED:
+✏️  ~/.pi/agent/AGENTS.md (simplified)
+✏️  dotfiles/pi/setup-leanctx.sh (simplified to 57 lines)
+✏️  dotfiles/pi/install.sh (added npm installs)
+✏️  dotfiles/pi/README.md (updated)
+❌  Removed: todo.ts, btw.ts
+✨  Created: MIGRATION.md, SIMPLIFICATION-SUMMARY.md, CHANGES.txt
+
+GIT STATUS:
+Ready to commit. Run:
+  cd ~/dev/dotfiles
+  git add -A
+  git commit -m "Simplify pi config: remove overkill, use npm extensions"
+  git push
+
+NEXT STEPS:
+1. Test the changes locally:
+   cd ~/dev/dotfiles/pi
+   ./install.sh  # Should install npm packages automatically
+
+2. In pi session:
+   /reload
+   /btw test question
+   /todos
+   /m
+
+3. If all works, commit and push
+
+VERIFICATION COMMANDS:
+  pi install list | grep -E '(rpiv-todo|pi-btw)'
+  lean-ctx doctor integrations
+  ls ~/.pi/agent/extensions/  # Should NOT have todo.ts or btw.ts

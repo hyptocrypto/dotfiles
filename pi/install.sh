@@ -77,6 +77,18 @@ else
     fi
 fi
 
+# Install recommended extensions from npm
+echo
+echo "📦 Installing recommended extensions..."
+if command -v pi &>/dev/null; then
+    pi install npm:@juicesharp/rpiv-todo && echo "  ✓ todo extension installed"
+    pi install npm:@narumitw/pi-btw && echo "  ✓ btw extension installed"
+else
+    echo "  ⚠️  pi not found - install extensions manually:"
+    echo "      pi install npm:@juicesharp/rpiv-todo"
+    echo "      pi install npm:@narumitw/pi-btw"
+fi
+
 echo
 echo "Done! Config copied to ~/.pi/agent/"
 echo
@@ -89,5 +101,8 @@ echo
 echo "The switch-agents.sh script configures models for your provider:"
 echo "  - GitHub Copilot → gemini-3.8-flash (scout), claude-sonnet-5, claude-opus-5"
 echo "  - Anthropic → claude-haiku-4-5 (scout), claude-sonnet-4-5"
+echo
+echo "Installed extensions: @juicesharp/rpiv-todo, @narumitw/pi-btw"
+echo "Custom extensions: branch-context, review, model-enhanced, protected-paths, auto-provider-config"
 echo
 echo "To update from repo later: re-run this script (./install.sh)"

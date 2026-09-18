@@ -87,9 +87,7 @@ This detects which provider you're authenticated with and configures agents acco
 
 ### LeanCTX (Context Compression)
 
-**Automatically reduces token usage by 40-50%** (real-world results on large codebases).
-
-Compresses file reads, shell output, and conversation context before sending to the model.
+**Automatically reduces token usage by 40-95%** via MCP integration.
 
 **Installation:**
 ```bash
@@ -97,31 +95,37 @@ cd ~/dev/dotfiles/pi
 ./setup-leanctx.sh
 ```
 
-**See:** [LEANCTX.md](LEANCTX.md) for details.
+Uses `lean-ctx wrap pi` for automatic setup with aggressive compression.
 
 ### Custom Commands
 
-**New custom commands added:**
-- `/btw <question>` - Quick questions to cheap model (non-blocking)
+**Custom commands available:**
 - `/m` or `/pick` - Enhanced model picker with cost info and thinking levels
+- Plus npm extensions: `/btw`, `/todos` (see Extensions below)
 
 See **[COMMANDS.md](COMMANDS.md)** for full documentation.
 
 ## Extensions
 
-Extensions in `extensions/` are auto-loaded by pi:
-- `btw.ts` - Quick questions (`/btw`)
-- `model-enhanced.ts` - Enhanced model picker (`/m`, `/pick`)
-- `branch-context.ts` - Auto-inject feature branch context (NEW)
+### NPM Extensions (Installed via install.sh)
+
+- **`@juicesharp/rpiv-todo`** - Todo list with live overlay (`/todos`)
+- **`@narumitw/pi-btw`** - Quick questions to cheap model (`/btw <question>`)
+
+### Custom Extensions (in `extensions/`)
+
+- `model-enhanced.ts` - Enhanced model picker (`/m`, `/pick`) with cost info
+- `branch-context.ts` - Auto-inject feature branch context
+- `review.ts` - Local PR-style code review (`/review`)
+- `auto-provider-config.ts` - Auto-sync settings when switching providers
+- `protected-paths.ts` - Block writes to sensitive files
 - `confirm-destructive.ts` - Confirm dangerous operations
 - `git-checkpoint.ts` - Auto-checkpoint on changes
-- `protected-paths.ts` - Block writes to sensitive files
 - `question.ts` - Enhanced question tool
 - `subagent/` - Task delegation
-- `todo.ts` - Todo list management
 - And more...
 
-See each `.ts` file for details or `README-branch-context.md` for the branch context extension.
+See **[MIGRATION.md](MIGRATION.md)** for details on replaced extensions.
 
 ### Branch Context Extension
 
