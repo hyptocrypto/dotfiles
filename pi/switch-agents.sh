@@ -260,6 +260,11 @@ EOF
   "warnings": {
     "anthropicExtraUsage": true
   },
+  "packages": [
+    "npm:pi-lean-ctx",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@narumitw/pi-btw"
+  ],
   "lastChangelogVersion": "0.85.1"
 }
 EOF
@@ -496,6 +501,12 @@ EOF
   "warnings": {
     "anthropicExtraUsage": true
   },
+  "packages": [
+    "npm:pi-lean-ctx",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@narumitw/pi-btw",
+    "npm:pi-claude-subscription-connector"
+  ],
   "lastChangelogVersion": "0.85.1"
 }
 EOF
