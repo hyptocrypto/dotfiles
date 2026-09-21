@@ -21,7 +21,7 @@ fi
 # Auto-configure for pi
 echo ""
 echo "⚙️  Auto-configuring for pi..."
-if lean-ctx wrap pi; then
+if lean-ctx init --agent pi; then
     echo "✓ Pi integration configured"
 else
     echo "❌ Configuration failed"
@@ -36,7 +36,7 @@ CONFIG_FILE="$HOME/.pi/agent/npm/node_modules/pi-lean-ctx/config.json"
 if [ -f "$CONFIG_FILE" ]; then
     if command -v jq &>/dev/null; then
         TMP=$(mktemp)
-        jq '.env.LEAN_CTX_COMPRESSION_LEVEL = "aggressive" | .env.LEAN_CTX_PI_MODE = "replace"' "$CONFIG_FILE" > "$TMP" && mv "$TMP" "$CONFIG_FILE"
+        jq '.env.LEAN_CTX_COMPRESSION_LEVEL = "aggressive" | .env.LEAN_CTX_PI_MODE = "replace"' "$CONFIG_FILE" >"$TMP" && mv "$TMP" "$CONFIG_FILE"
         echo "✓ Configuration updated (aggressive compression + replace mode)"
     else
         echo "⚠️  jq not found - manually edit $CONFIG_FILE to set:"
