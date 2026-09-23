@@ -71,32 +71,35 @@ vim.api.nvim_create_autocmd("FileType", {
   desc = "Disable LazyVim autoformat for Vue/JS/TS",
 })
 
+-- SQL: disable Neovim's built-in sql omnifunc so it doesn't fight blink.cmp,
+-- while keeping its syntax keyword list available as a fallback.
+vim.g.omni_sql_default_compl_type = "syntax"
+vim.g.loaded_sql_completion = true
+
 -- SQL: Shift+Enter executes current statement under cursor (like DBeaver)
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "sql",
   callback = function()
     vim.keymap.set("n", "<S-CR>", function()
-      local cursor_line = vim.fn.line(".")
-      local total_lines = vim.fn.line("$")
-      local start_line = cursor_line
-      for i = cursor_line - 1, 1, -1 do
-        if vim.fn.getline(i):match(";%s*$") then
-          break
-        end
-        start_line = i
-      end
-      local end_line = cursor_line
-      for i = cursor_line, total_lines do
-        end_line = i
-        if vim.fn.getline(i):match(";%s*$") then
-          break
-        end
-      end
-      vim.cmd(string.format("%d,%dDB", start_line, end_line))
+      require("sqmeow.api").execute_statement()
     end, { buffer = true, desc = "Execute SQL statement" })
-    vim.keymap.set("v", "<S-CR>", ":DB<CR>", { buffer = true, desc = "Execute selected SQL" })
+    vim.keymap.set("v", "<S-CR>", function()
+      vim.cmd("normal! \27")
+      require("sqmeow.api").execute_selection()
+    end, { buffer = true, desc = "Execute selected SQL" })
   end,
   desc = "SQL keymaps",
+})
+
+-- sqmeow: no spellcheck in the drawer/result windows (must re-apply on every
+-- new window, since a closed-and-reopened window resets to the global default)
+vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
+  callback = function(ev)
+    if vim.bo[ev.buf].filetype:match("^sqmeow%-") then
+      vim.wo.spell = false
+    end
+  end,
+  desc = "Disable spellcheck in sqmeow windows",
 })
 
 -- Auto-fix Vue/JS/TS files with ESLint LSP on save

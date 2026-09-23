@@ -12,9 +12,63 @@ local vue_plugin = {
 -- Set rounded borders for LspInfo window
 require("lspconfig.ui.windows").default_options.border = "rounded"
 
+-- Translate sqmeow's saved connections into sqls' connection format, so the
+-- SQL language server knows your schema without a second, separately
+-- maintained credentials file. Only postgres/mysql/sqlite URLs are supported
+-- (sqls' own limitation); other dialects (redis, mongo, ...) are skipped.
+-- Re-run `:LspRestart` (or restart Neovim) after adding a connection in sqmeow.
+local function sqls_connections()
+  local path = vim.fs.joinpath(vim.fn.stdpath("data"), "sqmeow", "connections.json")
+  local ok, lines = pcall(vim.fn.readfile, path)
+  if not ok or #lines == 0 then
+    return {}
+  end
+  local decoded, saved = pcall(vim.json.decode, table.concat(lines, "\n"))
+  if not decoded or type(saved) ~= "table" then
+    return {}
+  end
+
+  local connections = {}
+  for _, conn in ipairs(saved) do
+    local scheme, rest = tostring(conn.url or ""):match("^(%a+)://(.*)$")
+    if scheme == "postgres" or scheme == "postgresql" or scheme == "mysql" then
+      local userinfo, hostinfo = rest:match("^([^@]*)@(.*)$")
+      hostinfo = hostinfo or rest
+      userinfo = userinfo or ""
+      local user, password = userinfo:match("^([^:]*):?(.*)$")
+      local hostport, dbpart = hostinfo:match("^([^/]*)/?(.*)$")
+      dbpart = dbpart or ""
+      local dbname, query = dbpart:match("^([^%?]*)%??(.*)$")
+      local host, port = (hostport or ""):match("^([^:]*):?(.*)$")
+      host = host ~= "" and host or "127.0.0.1"
+
+      if scheme == "mysql" then
+        table.insert(connections, {
+          alias = conn.name,
+          driver = "mysql",
+          dataSourceName = ("%s:%s@tcp(%s:%s)/%s"):format(user or "", password or "", host, port ~= "" and port or "3306", dbname or ""),
+        })
+      else
+        local dsn = ("host=%s port=%s user=%s password=%s dbname=%s"):format(
+          host, port ~= "" and port or "5432", user or "", password or "", dbname or ""
+        )
+        local sslmode = (query or ""):match("sslmode=([%w]+)")
+        if sslmode then
+          dsn = dsn .. " sslmode=" .. sslmode
+        end
+        table.insert(connections, { alias = conn.name, driver = "postgresql", dataSourceName = dsn })
+      end
+    elseif scheme == "sqlite" or scheme == "file" then
+      table.insert(connections, { alias = conn.name, driver = "sqlite3", dataSourceName = rest })
+    end
+  end
+  return connections
+end
+
 return {
   "neovim/nvim-lspconfig",
   event = "VeryLazy",
+  dependencies = { "nanotee/sqls.nvim" },
   opts = {
     -- Faster LSP startup
     single_file_support = true,
@@ -225,6 +279,20 @@ return {
             semanticTokens = false, -- expensive on large files
             staticcheck = false, -- 40+ analyzers; major perf hog on large repos
             experimentalPostfixCompletions = true,
+          },
+        },
+      },
+
+      -- SQL — schema-aware completion/hover via a real language server.
+      -- Connections are read from sqmeow's connections.json (see sqls_connections
+      -- above). sqls.nvim (dependency, on the runtimepath) supplies its own
+      -- `lsp/sqls.lua` on_attach with `:SqlsSwitchConnection` / `:SqlsSwitchDatabase`
+      -- to change which one completion targets, without restarting.
+      sqls = {
+        filetypes = { "sql", "mysql", "plsql" },
+        settings = {
+          sqls = {
+            connections = sqls_connections(),
           },
         },
       },
