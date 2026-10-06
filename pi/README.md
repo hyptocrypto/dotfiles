@@ -93,20 +93,18 @@ change the policy.
 day. `subagent`/`subagent_supervisor` (scout/planner/worker/reviewer
 delegation) are unaffected and stay on.
 
-`settings.json`'s `defaultTools` can only add/remove built-in tools
-(`read`/`bash`/`edit`/`write`/...), not extension-registered ones, so there's
-no persistent settings-file toggle for this. Instead, `omz/.zshrc` wraps the
-`pi` command:
+`pi-background-tasks` reads its own `PI_BG_FEATURES` env var
+(`process,delegate,fusion,attested,attribution` by default) and only loads
+the sub-extension for each listed feature — `omz/.zshrc` sets it without
+`fusion`, so that code never loads at all (not just hidden from the model):
 
 ```zsh
-pi() {
-  command pi --exclude-tools "fusion_reason,fusion_investigate,fusion_research,fusion_validate" "$@"
-}
+export PI_BG_FEATURES="process,delegate,attested,attribution"
 ```
 
-Get them back for one session by starting with `command pi` instead of `pi`,
-or for one call: `command pi --tools "+fusion_reason"` (any combination of
-`--tools`/`--exclude-tools`).
+`process` keeps `bg_run`/`bg_wait`/`bg_status`/`bg_logs`/`bg_kill`; `delegate`
+keeps `bg_delegate`/`bg_result`. Drop the var (or add `fusion` back in) for
+one shell to get it back.
 
 ## Files
 

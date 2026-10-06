@@ -469,11 +469,9 @@ export PATH="$HOME/.local/bin:$PATH"
 
 export XDG_CONFIG_HOME="$HOME/.config"
 
-# Pi coding agent: fusion_reason/investigate/research/validate (pi-background-tasks)
-# cost ~3.2k startup tokens and are rarely used day to day. defaultTools in
-# settings.json can't remove extension-registered tools (only built-ins), so
-# exclude them here instead. Drop this function for one session to get them
-# back, or run `command pi --tools "+fusion_reason"` etc. for a single call.
-pi() {
-  command pi --exclude-tools "fusion_reason,fusion_investigate,fusion_research,fusion_validate" "$@"
-}
+# pi-background-tasks: fusion_reason/investigate/research/validate cost ~3.2k
+# startup tokens and are rarely used. This prevents the fusion sub-extension
+# from loading at all (not just hiding the tools) - keeps process (bg_run/
+# wait/status/logs/kill), delegate (bg_delegate/bg_result), attested, and
+# attribution features. Drop "fusion" back in to re-enable.
+export PI_BG_FEATURES="process,delegate,attested,attribution"
