@@ -1,9 +1,9 @@
--- Function to toggle between Neo-tree, code file, and Dadbod UI
+-- Function to toggle between Neo-tree, code file, and Sqmeow (drawer/result)
 function ToggleNeoTreeOrCode()
   local neotree_winid = nil
   local code_winid = nil
-  local dbui_winid = nil
-  local dbout_winid = nil
+  local drawer_winid = nil
+  local result_winid = nil
   local current_winid = vim.fn.winnr()
 
   -- Iterate through all windows
@@ -14,35 +14,35 @@ function ToggleNeoTreeOrCode()
 
     if filetype == "neo-tree" then
       neotree_winid = winnr
-    elseif filetype == "dbui" then
-      dbui_winid = winnr
-    elseif filetype == "dbout" then
-      dbout_winid = winnr
+    elseif filetype == "sqmeow-drawer" then
+      drawer_winid = winnr
+    elseif filetype == "sqmeow-result" then
+      result_winid = winnr
     elseif buftype == "" then
       code_winid = winnr
     end
   end
 
-  -- Cycle: code -> neo-tree -> dbui -> code
+  -- Cycle: code -> neo-tree -> sqmeow drawer -> code
   if current_winid == code_winid then
     if neotree_winid then
       vim.cmd(neotree_winid .. "wincmd w")
-    elseif dbui_winid then
-      vim.cmd(dbui_winid .. "wincmd w")
+    elseif drawer_winid then
+      vim.cmd(drawer_winid .. "wincmd w")
     end
   elseif current_winid == neotree_winid then
-    if dbui_winid then
-      vim.cmd(dbui_winid .. "wincmd w")
+    if drawer_winid then
+      vim.cmd(drawer_winid .. "wincmd w")
     elseif code_winid then
       vim.cmd(code_winid .. "wincmd w")
     end
-  elseif current_winid == dbui_winid then
+  elseif current_winid == drawer_winid then
     if code_winid then
       vim.cmd(code_winid .. "wincmd w")
     elseif neotree_winid then
       vim.cmd(neotree_winid .. "wincmd w")
     end
-  elseif current_winid == dbout_winid then
+  elseif current_winid == result_winid then
     if code_winid then
       vim.cmd(code_winid .. "wincmd w")
     end

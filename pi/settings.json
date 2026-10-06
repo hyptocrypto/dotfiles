@@ -38,7 +38,8 @@
     "npm:@gotgenes/pi-permission-system",
     "npm:@juicesharp/rpiv-todo",
     "npm:@narumitw/pi-btw",
-    "npm:pi-git-status-line"
+    "npm:pi-git-status-line",
+    "npm:pi-claude-subscription-connector"
   ],
   "lastChangelogVersion": "0.85.1"
 }

@@ -89,7 +89,7 @@ else
     echo
     echo "LeanCTX already installed (lean-ctx $(lean-ctx --version 2>/dev/null || echo 'version unknown'))"
     # Ensure aggressive compression and replace mode are set
-    CONFIG_FILE="$PI_DIR/npm/node_modules/pi-lean-ctx/config.json"
+    CONFIG_FILE="$PI_DIR/extensions/pi-lean-ctx/config.json"
     TEMPLATE_FILE="$REPO_DIR/leanctx-config-template.json"
     if [ ! -f "$CONFIG_FILE" ] && [ -f "$TEMPLATE_FILE" ]; then
         echo "  Creating LeanCTX config (aggressive compression + replace mode)..."
