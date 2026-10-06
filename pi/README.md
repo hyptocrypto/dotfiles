@@ -2,36 +2,29 @@
 
 Dotfiles config for [Pi coding agent](https://pi.dev).
 
-## Installation
+## Install
 
 ```bash
 cd ~/dev/dotfiles/pi
 ./install.sh
 ```
 
-Copies config to `~/.pi/agent/` and installs packages.
+Copies config to `~/.pi/agent/`, installs packages, deploys LeanCTX and
+permission-system policy, and configures agent models for whichever provider
+you're logged into (via `auth.json`). Idempotent — safe to re-run any time,
+same result whether `~/.pi/agent` is empty or already populated.
 
-**Clean install** (deletes `~/.pi/agent/` first):
-```bash
-./install.sh --clean
-```
+`./install.sh --clean` wipes `~/.pi/agent` first.
 
-## After Install
-
-```bash
-pi
-/login  # If first time
-```
-
-Modal editing (custom `modal-editor` extension) starts in INSERT. Press `Esc`
-or type `jk` quickly to switch to NORMAL mode.
+First time: run `./install.sh`, start `pi`, `/login`, then re-run
+`./install.sh` to pick up the provider-specific agent models.
 
 ## Packages (12)
 
 - @gotgenes/pi-anthropic-auth - Auth
 - pi-web-access - Web search, GitHub, PDF, YouTube
 - @juicesharp/rpiv-ask-user-question - Multi-question dialogs
-- pi-subagents - Subagent orchestration (scout, researcher, worker, reviewer)
+- pi-subagents - Subagent orchestration (scout, planner, worker, reviewer)
 - pi-goal-x - Goal tracking (`/goal`)
 - @narumitw/pi-usage - Usage tracking
 - pi-git-status-line - Git status in the footer
@@ -54,29 +47,24 @@ or type `jk` quickly to switch to NORMAL mode.
 
 ## Modal Editing
 
-`modal-editor` is a local extension (not an npm package) so the `jk` escape
-chord works. Starts in INSERT. `Esc` or `jk` -> NORMAL.
+`modal-editor` starts in INSERT. `Esc` or `jk` -> NORMAL.
 
-**Key bindings:**
-- INSERT: `jk` -> NORMAL mode
-- NORMAL: `hjkl` (move), `w/b/e` (word motions), `dd` (delete line), `i/a/o` (insert), `v/V` (visual)
+- NORMAL: `hjkl` (move), `w/b/e` (word motions), `dd` (delete line),
+  `i/a/o` (insert), `v/V` (visual)
 
-## Config
+## Agent Models
 
-- `settings.json` - Pi settings & packages
-- `keybindings.json` - Keybindings
-- `AGENTS.md` - Global agent rules
-- `agents/` - Agent definitions (scout, planner, worker, reviewer)
-- `extensions/` - Custom extensions
-- `prompts/` - Prompt templates
-- `themes/` - Themes
-- `permission-system-config-template.json` - Permission policy (deployed to
-  `~/.pi/agent/extensions/pi-permission-system/config.json`)
+`install.sh` detects your provider from `auth.json` and sets `agents/*.md` +
+`settings.json` accordingly:
+
+- Anthropic: scout=claude-haiku-4-5, planner/worker/reviewer=claude-sonnet-4-5
+- GitHub Copilot: scout=gemini-3.8-flash, planner/worker=claude-sonnet-5,
+  reviewer=claude-opus-5
 
 ## Permissions
 
-`@gotgenes/pi-permission-system` is configured allow-by-default. You are
-prompted to approve only:
+`@gotgenes/pi-permission-system` is allow-by-default. You're prompted to
+approve only:
 
 - Destructive file ops: `rm *`, `sudo rm *`, `find * -delete`,
   `find * -exec rm*`, `shred *`, `dd *`, `mkfs*`, `diskutil erase*/partition*`
@@ -87,27 +75,25 @@ prompted to approve only:
 
 Everything else (`read`, `grep`, `find`, `ls`, `edit`, `bash`, external
 directories, etc.) is allowed silently. `.env*`, `.git/*`, `node_modules/*`,
-`~/.ssh/*`, `~/.aws/*`, and `~/.config/*/secrets*` stay hard-denied (not
-prompted — just blocked) to keep secrets out of context.
+`~/.ssh/*`, `~/.aws/*`, and `~/.config/*/secrets*` stay hard-denied (blocked,
+not prompted). `sudo`/`eval`/`bash -c`/`xargs` wrappers are always floored to
+`ask` by the extension itself regardless of config.
 
-`sudo`/`eval`/`bash -c`/`xargs` wrappers are always floored to `ask` by the
-extension itself, regardless of config, so an opaque payload can't ride a
-permissive rule.
+Edit `permission-system-config-template.json` and re-run `./install.sh` to
+change the policy.
 
-Edit `pi/permission-system-config-template.json` and re-run `./install.sh` to
-change the policy (it fully overwrites the deployed config, like
-`settings.json`).
+## Files
 
-## Update
-
-```bash
-cd ~/dev/dotfiles/pi
-./install.sh
-/reload  # In pi
-```
-
-## Agent Models
-
-Run `./switch-agents.sh` to configure models per provider:
-- Anthropic: claude-haiku-4-5 (scout), claude-sonnet-4-5
-- GitHub Copilot: gemini-3.8-flash (scout), claude-sonnet-5, claude-opus-5
+- `install.sh` - the one script: copy config, install packages, configure
+  LeanCTX/permissions/agent models
+- `settings.json` - Pi settings & packages
+- `keybindings.json` - keybindings
+- `AGENTS.md` - global agent rules
+- `agents/` - agent definitions (scout, planner, worker, reviewer)
+- `extensions/` - custom extensions
+- `prompts/` - prompt templates
+- `themes/` - themes
+- `leanctx-config-template.json` - LeanCTX config (deployed to
+  `~/.pi/agent/extensions/pi-lean-ctx/config.json`)
+- `permission-system-config-template.json` - permission policy (deployed to
+  `~/.pi/agent/extensions/pi-permission-system/config.json`)

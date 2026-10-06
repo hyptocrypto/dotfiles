@@ -79,8 +79,6 @@ DON'T use subagents when:
 ✗ All steps need the same full context
 ✗ Time is more valuable than cost (~1 min overhead per subagent)
 
-See `DECISION-FRAMEWORK.md` for detailed guidance.
-
 ## Communication & Code Efficiency
 
 ### Compressed Communication (Default Mode)
