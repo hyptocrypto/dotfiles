@@ -1,130 +1,61 @@
-# Quick Setup Guide
+# Pi Setup
 
-## New Device Setup (3 steps)
+## First Time
 
 ```bash
-# 1. Install (copies config)
 cd ~/dev/dotfiles/pi
 ./install.sh
 
-# 2. Login to your provider
 pi
-/login  # Choose Claude or Copilot
-/quit
+/login
+```
 
-# 3. Configure agents for your provider
+## Provider Configuration
+
+After login, configure agent models:
+
+```bash
 cd ~/dev/dotfiles/pi
 ./switch-agents.sh
-
-# 4. Restart pi
-pi
 ```
 
-Done! Your agents are now configured for your provider.
+This detects your provider and sets models for scout/planner/worker/reviewer.
 
-## What Happens
+## Vim Mode
 
-**install.sh:**
-- Creates `~/.pi/agent/` directory
-- **Copies** all config from repo (no symlinks)
-- Safe to re-run (backs up existing files on first run)
-- Updates local config to match repo templates
+Auto-enables on startup.
 
-**switch-agents.sh:**
-- Detects provider from `~/.pi/agent/auth.json`
-- Writes complete `settings.json` and `~/.pi/agent/agents/*.md` files
-- Claude device → haiku/sonnet models
-- Copilot device → gemini/sonnet/opus models
+- `jk` in insert mode → normal mode
+- `hjkl` to move
+- `Esc` also works
 
-## Models Used
-
-### Claude Device
-```
-scout    → claude-haiku-4-5   (fast, cheap)
-planner  → claude-sonnet-4-5  (planning)
-worker   → claude-sonnet-4-5  (implementation)
-reviewer → claude-sonnet-4-5  (review)
-```
-
-### Copilot Device
-```
-scout    → gemini-3.8-flash   (fast, cheap)
-planner  → claude-sonnet-5    (planning)
-worker   → claude-sonnet-5    (implementation)
-reviewer → claude-opus-5      (deep analysis)
-```
-
-## Syncing Changes
-
-**After making changes on one device:**
-```bash
-cd ~/dev/dotfiles
-git add pi/
-git commit -m "Update pi config"
-git push
-```
-
-**On another device:**
-```bash
-cd ~/dev/dotfiles
-git pull
-cd pi
-./switch-agents.sh  # Reconfigure for this device's provider
-```
+Customize: Edit `~/.pi/agent/pi-vimmode.config.js` then `/vimmode reload`
 
 ## Troubleshooting
 
-**Agents not loading?**
+**Vim mode not working:**
 ```bash
-cd ~/dev/dotfiles/pi
-./install.sh  # Re-create symlinks
+/vimmode  # Toggle it
+/vimmode reload  # Reload config
 ```
 
-**Wrong models?**
+**Extensions not loading:**
 ```bash
-cd ~/dev/dotfiles/pi
-./switch-agents.sh  # Re-detect and configure
-pi
-/quit
-pi
+./install.sh --clean  # Clean install
 ```
 
-**Check symlinks:**
+**Auth errors:**
+Package `@gotgenes/pi-anthropic-auth` should fix it. If not:
 ```bash
-ls -la ~/.pi/agent/
-# Should show symlinks pointing to ~/dev/dotfiles/pi/
+pi install npm:@gotgenes/pi-anthropic-auth
+/quit && pi
+/login
 ```
 
-**Reload pi:**
-```
-/reload  # In pi, after changing configs
-```
+## Files
 
-## File Locations
-
-**Repo (version controlled):**
-```
-~/dev/dotfiles/pi/agents/*.md        # Templates
-~/dev/dotfiles/pi/extensions/*.ts    # Templates
-~/dev/dotfiles/pi/switch-agents.sh   # Script
-~/dev/dotfiles/pi/settings.json      # Template
-```
-
-**Pi reads from (local copies):**
-```
-~/.pi/agent/agents/*.md              # Device-specific
-~/.pi/agent/extensions/*.ts          # Local copies
-~/.pi/agent/settings.json            # Local copy
-```
-
-**Not in repo (local only):**
-```
-~/.pi/agent/auth.json                # Credentials
-~/.pi/agent/sessions/                # Session history
-```
-
-**Not in repo (local only):**
-```
-~/.pi/agent/auth.json         - Your login credentials
-~/.pi/agent/sessions/         - Session history
-```
+- `install.sh` - Install script
+- `switch-agents.sh` - Configure agent models
+- `verify-install.sh` - Check installation
+- `settings.json` - Main config
+- `pi-vimmode-config-template.js` - Vim config template

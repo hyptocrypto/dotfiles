@@ -1,0 +1,36 @@
+{
+  "permission": {
+    "*": "allow",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+      ".git/*": "deny",
+      ".git": "deny",
+      "node_modules/*": "deny",
+      "~/.ssh/*": "deny",
+      "~/.aws/*": "deny",
+      "~/.config/*/secrets*": "deny"
+    },
+    "bash": {
+      "*": "allow",
+      "rm -rf *": "deny",
+      "rm -rf /*": "deny",
+      "sudo rm *": "deny",
+      "sudo *": "ask",
+      "git push *": "ask",
+      "git push --force*": "ask",
+      "npm publish*": "ask",
+      "docker system prune*": "ask"
+    },
+    "external_directory": {
+      "*": "ask",
+      "~/.cargo/registry/*": "allow",
+      "~/.npm/*": "allow",
+      "/tmp/*": "allow"
+    }
+  },
+  "doublePressToConfirm": true,
+  "promptNotifications": ["bell"]
+}

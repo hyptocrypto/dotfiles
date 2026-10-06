@@ -479,19 +479,7 @@ class ModalEditor extends CustomEditor {
 
 	render(width: number): string[] {
 		const lines = super.render(width);
-		if (lines.length === 0) return lines;
-		const label =
-			this.mode === "insert"
-				? " INSERT "
-				: this.mode === "normal"
-					? " NORMAL "
-					: this.mode === "visual"
-						? " VISUAL "
-						: " V-LINE ";
-		const last = lines.length - 1;
-		if (visibleWidth(lines[last]!) >= label.length) {
-			lines[last] = truncateToWidth(lines[last]!, width - label.length, "") + label;
-		}
+		// Mode is shown in status line, not border
 		return lines;
 	}
 }

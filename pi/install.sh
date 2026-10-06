@@ -6,7 +6,30 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PI_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 
+# Option to force clean install
+if [ "${1:-}" = "--clean" ]; then
+    echo "🗑️  Clean install requested - removing $PI_DIR"
+    rm -rf "$PI_DIR"
+    echo "  ✓ Removed"
+    echo
+fi
+
+echo "🧹 Preparing pi directory..."
+echo
+
+# Create directory
 mkdir -p "$PI_DIR"
+
+# Clean up old conflicting extensions BEFORE copying
+if [ -d "$PI_DIR/extensions" ]; then
+    echo "Removing old conflicting extensions..."
+    rm -rf "$PI_DIR/extensions/web" 2>/dev/null || true
+    rm -rf "$PI_DIR/extensions/subagent" 2>/dev/null || true
+    rm -rf "$PI_DIR/extensions/modal-editor" 2>/dev/null || true
+    rm -f "$PI_DIR/extensions/question.ts" 2>/dev/null || true
+    echo "  ✓ Conflicts cleaned (replaced with npm packages)"
+    echo
+fi
 
 copy_file() {
     local src="$1" dst="$2"
@@ -40,11 +63,27 @@ copy_file "$REPO_DIR/settings.json" "$PI_DIR/settings.json"
 copy_file "$REPO_DIR/keybindings.json" "$PI_DIR/keybindings.json"
 copy_file "$REPO_DIR/AGENTS.md" "$PI_DIR/AGENTS.md"
 
-# Copy directories
-copy_dir "$REPO_DIR/themes" "$PI_DIR/themes"
-copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
-copy_dir "$REPO_DIR/prompts" "$PI_DIR/prompts"
-copy_dir "$REPO_DIR/agents" "$PI_DIR/agents"
+# Copy vim config if it doesn't exist (don't overwrite user customizations)
+if [ ! -f "$PI_DIR/pi-vimmode.config.js" ]; then
+    echo "copied /Users/julianbaumgartner/.pi/agent/pi-vimmode.config.js"
+    cp "$REPO_DIR/pi-vimmode-config-template.js" "$PI_DIR/pi-vimmode.config.js"
+fi
+
+# Clean and copy directories (remove old contents first)
+rm -rf "$PI_DIR/themes" && copy_dir "$REPO_DIR/themes" "$PI_DIR/themes"
+rm -rf "$PI_DIR/extensions" && copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
+rm -rf "$PI_DIR/prompts" && copy_dir "$REPO_DIR/prompts" "$PI_DIR/prompts"
+rm -rf "$PI_DIR/agents" && copy_dir "$REPO_DIR/agents" "$PI_DIR/agents"
+
+# Clean up conflicting extensions AGAIN after copy (in case repo still has them)
+echo
+echo "Ensuring no conflicts with npm packages..."
+rm -rf "$PI_DIR/extensions/web" 2>/dev/null || true
+rm -rf "$PI_DIR/extensions/subagent" 2>/dev/null || true
+rm -rf "$PI_DIR/extensions/modal-editor" 2>/dev/null || true
+rm -f "$PI_DIR/extensions/question.ts" 2>/dev/null || true
+echo "  ✓ Conflict check complete (modal-editor replaced with pi-vimmode)"
+echo
 
 # Optional: Install LeanCTX
 if ! command -v lean-ctx &>/dev/null; then
@@ -81,28 +120,127 @@ fi
 echo
 echo "📦 Installing recommended extensions..."
 if command -v pi &>/dev/null; then
+    pi install npm:@gotgenes/pi-anthropic-auth && echo "  ✓ anthropic auth extension installed"
+    pi install npm:pi-vimmode && echo "  ✓ vim mode extension installed"
+    pi install npm:@zigai/pi-prompt-history && echo "  ✓ prompt history extension installed"
+    pi install npm:pi-web-access && echo "  ✓ web access extension installed"
+    pi install npm:@juicesharp/rpiv-ask-user-question && echo "  ✓ question extension installed"
+    pi install npm:pi-subagents && echo "  ✓ subagents extension installed"
+    pi install npm:pi-lens && echo "  ✓ lens extension installed"
+    pi install npm:pi-goal-x && echo "  ✓ goal extension installed"
+    pi install npm:@narumitw/pi-usage && echo "  ✓ usage extension installed"
+    # pi-powerline-footer conflicts with modal-editor (vim mode)
+    # Skipping: pi install npm:pi-powerline-footer
+    pi install npm:pi-background-tasks && echo "  ✓ background tasks extension installed"
+    pi install npm:@gotgenes/pi-permission-system && echo "  ✓ permission system extension installed"
     pi install npm:@juicesharp/rpiv-todo && echo "  ✓ todo extension installed"
     pi install npm:@narumitw/pi-btw && echo "  ✓ btw extension installed"
 else
     echo "  ⚠️  pi not found - install extensions manually:"
+    echo "      pi install npm:@gotgenes/pi-anthropic-auth"
+    echo "      pi install npm:pi-vimmode"
+    echo "      pi install npm:@zigai/pi-prompt-history"
+    echo "      pi install npm:pi-web-access"
+    echo "      pi install npm:@juicesharp/rpiv-ask-user-question"
+    echo "      pi install npm:pi-subagents"
+    echo "      pi install npm:pi-lens"
+    echo "      pi install npm:pi-goal-x"
+    echo "      pi install npm:@narumitw/pi-usage"
+    # Skipped (conflicts with vim mode): pi install npm:pi-powerline-footer
+    echo "      pi install npm:pi-background-tasks"
+    echo "      pi install npm:@gotgenes/pi-permission-system"
     echo "      pi install npm:@juicesharp/rpiv-todo"
     echo "      pi install npm:@narumitw/pi-btw"
 fi
 
+# Final verification
 echo
-echo "Done! Config copied to ~/.pi/agent/"
+echo "🔍 Verifying installation..."
 echo
-echo "Next steps:"
-echo "  1. Run: pi"
-echo "  2. Login: /login (choose your provider)"
-echo "  3. Run: cd $REPO_DIR && ./switch-agents.sh"
-echo "  4. Restart: /quit then pi"
+
+# Check that conflicting extensions are gone
+if [ -d "$PI_DIR/extensions/web" ] || [ -d "$PI_DIR/extensions/subagent" ] || [ -f "$PI_DIR/extensions/question.ts" ]; then
+    echo "⚠️  WARNING: Conflicting extensions still present!"
+    echo "  This may cause pi to fail on startup."
+    echo "  Please report this issue."
+    echo
+else
+    echo "  ✓ No conflicting extensions"
+fi
+
+# Check that packages are in settings.json
+if grep -q '"packages"' "$PI_DIR/settings.json"; then
+    echo "  ✓ Package list found in settings.json"
+else
+    echo "⚠️  WARNING: No packages list in settings.json!"
+fi
+
 echo
-echo "The switch-agents.sh script configures models for your provider:"
-echo "  - GitHub Copilot → gemini-3.8-flash (scout), claude-sonnet-5, claude-opus-5"
-echo "  - Anthropic → claude-haiku-4-5 (scout), claude-sonnet-4-5"
+echo "✅ Installation complete!"
 echo
-echo "Installed extensions: @juicesharp/rpiv-todo, @narumitw/pi-btw"
-echo "Custom extensions: branch-context, review, model-enhanced, protected-paths, auto-provider-config"
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
+echo "IMPORTANT: How to Start Pi"
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
 echo
-echo "To update from repo later: re-run this script (./install.sh)"
+echo "1. If pi is running, quit it first:"
+echo "     /quit"
+echo
+echo "2. Start pi:"
+echo "     pi"
+echo
+echo "3. If this is your first time, login:"
+echo "     /login"
+echo
+echo "4. (Optional) Configure agent models for your provider:"
+echo "     cd $REPO_DIR && ./switch-agents.sh"
+echo "     Then: /quit and restart pi"
+echo
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
+echo "Installed Packages (14)"
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
+echo
+echo "Core:"
+echo "  • @gotgenes/pi-anthropic-auth - Anthropic authentication"
+echo "  • pi-vimmode - Vim mode (hjkl, motions, visual mode)"
+echo "  • @zigai/pi-prompt-history - Up/down arrow history (persisted)"
+echo "  • pi-web-access - Web search, GitHub, PDF, YouTube"
+echo "  • @juicesharp/rpiv-ask-user-question - Multi-question dialogs"
+echo "  • pi-subagents - Official subagent orchestration"
+echo "  • pi-lens - Real-time LSP/linting"
+echo "  • pi-goal-x - Goal tracking (/goal)"
+echo "  • @narumitw/pi-usage - Usage/cost tracking"
+echo "  • pi-powerline-footer - Powerline status bar"
+echo "  • pi-background-tasks - Background jobs"
+echo "  • @gotgenes/pi-permission-system - Permissions"
+echo
+echo "Utilities:"
+echo "  • @juicesharp/rpiv-todo - Todo list (/todos)"
+echo "  • @narumitw/pi-btw - Quick questions (/btw)"
+echo
+echo "Custom Extensions (7):"
+echo "  # modal-editor - REMOVED (replaced with npm:pi-vimmode)"
+echo "  • branch-context - Auto-compressed branch context"
+echo "  • review - Local PR review (/review)"
+echo "  • model-enhanced - Enhanced model picker (/m)"
+echo "  • plan-mode - Read-only exploration (/plan)"
+echo "  • confirm-destructive - Session confirmations"
+echo "  • git-checkpoint - Auto-checkpoint"
+echo "  • protected-paths - Path blocking"
+echo
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
+echo "Troubleshooting"
+echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
+echo
+echo "If pi fails to start:"
+echo "  1. Check for errors in startup output"
+echo "  2. Try: pi -ne (start without extensions)"
+echo "  3. Run: cd $REPO_DIR && ./verify-install.sh"
+echo "  4. See: cat $REPO_DIR/TROUBLESHOOTING.md"
+echo
+echo "If vim mode not working:"
+echo "  - Run: /vimmode (to enable it)"
+echo "  - Try pressing 'jk' quickly in insert mode to escape"
+echo "  - Press Escape to enter normal mode, then 'i' for insert"
+echo "  - Vim mode auto-enables on startup (piVimMode.enabled in settings.json)"
+echo
+echo "To update later: re-run ./install.sh"

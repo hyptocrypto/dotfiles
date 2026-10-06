@@ -28,7 +28,16 @@
     "anthropicExtraUsage": true
   },
   "packages": [
-    "npm:pi-claude-subscription-connector"
+    "npm:@gotgenes/pi-anthropic-auth",
+    "npm:pi-web-access",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:pi-subagents",
+    "npm:pi-goal-x",
+    "npm:pi-background-tasks",
+    "npm:@gotgenes/pi-permission-system",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@narumitw/pi-btw",
+    "npm:pi-git-status-line"
   ],
   "lastChangelogVersion": "0.85.1"
 }
