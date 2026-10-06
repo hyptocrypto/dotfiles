@@ -33,7 +33,6 @@
     "npm:@gotgenes/pi-anthropic-auth",
     "npm:pi-web-access",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:pi-subagents",
     "npm:pi-goal-x",
     "npm:pi-background-tasks",
     "npm:@gotgenes/pi-permission-system",

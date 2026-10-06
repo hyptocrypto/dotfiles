@@ -68,7 +68,6 @@ PACKAGES=(
     "@zigai/pi-prompt-history"
     "pi-web-access"
     "@juicesharp/rpiv-ask-user-question"
-    "pi-subagents"
     "pi-goal-x"
     "@narumitw/pi-usage"
     "pi-git-status-line"
