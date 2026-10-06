@@ -145,6 +145,14 @@ else
     echo "      pi install npm:@narumitw/pi-btw"
 fi
 
+# Deploy the permission-system policy (allow-by-default; ask only for
+# destructive/install commands). Managed like settings.json: backed up once,
+# then overwritten on every re-run to stay in sync with the repo template.
+PERM_CONFIG="$PI_DIR/extensions/pi-permission-system/config.json"
+mkdir -p "$(dirname "$PERM_CONFIG")"
+copy_file "$REPO_DIR/permission-system-config-template.json" "$PERM_CONFIG"
+echo "  ✓ permission-system policy installed (allow-by-default; ask for destructive/install commands)"
+
 # Final verification
 echo
 echo "🔍 Verifying installation..."

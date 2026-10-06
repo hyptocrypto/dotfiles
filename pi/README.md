@@ -70,6 +70,33 @@ chord works. Starts in INSERT. `Esc` or `jk` -> NORMAL.
 - `extensions/` - Custom extensions
 - `prompts/` - Prompt templates
 - `themes/` - Themes
+- `permission-system-config-template.json` - Permission policy (deployed to
+  `~/.pi/agent/extensions/pi-permission-system/config.json`)
+
+## Permissions
+
+`@gotgenes/pi-permission-system` is configured allow-by-default. You are
+prompted to approve only:
+
+- Destructive file ops: `rm *`, `sudo rm *`, `find * -delete`,
+  `find * -exec rm*`, `shred *`, `dd *`, `mkfs*`, `diskutil erase*/partition*`
+- Package-manager installs/removals: `brew`, `npm`, `npx`, `pnpm`, `yarn`,
+  `pip`/`pip3`/`pipx`, `cargo install`, `go install`, `gem install`,
+  `apt`/`apt-get` install/remove
+- Force-pushing git history: `git push --force*` / `git push -f*`
+
+Everything else (`read`, `grep`, `find`, `ls`, `edit`, `bash`, external
+directories, etc.) is allowed silently. `.env*`, `.git/*`, `node_modules/*`,
+`~/.ssh/*`, `~/.aws/*`, and `~/.config/*/secrets*` stay hard-denied (not
+prompted — just blocked) to keep secrets out of context.
+
+`sudo`/`eval`/`bash -c`/`xargs` wrappers are always floored to `ask` by the
+extension itself, regardless of config, so an opaque payload can't ride a
+permissive rule.
+
+Edit `pi/permission-system-config-template.json` and re-run `./install.sh` to
+change the policy (it fully overwrites the deployed config, like
+`settings.json`).
 
 ## Update
 

@@ -1,4 +1,10 @@
 {
+  "$schema": "https://raw.githubusercontent.com/gotgenes/pi-packages/main/packages/pi-permission-system/schemas/permissions.schema.json",
+  "debugLog": false,
+  "permissionReviewLog": true,
+  "yoloMode": false,
+  "doublePressToConfirm": true,
+  "promptNotifications": ["bell"],
   "permission": {
     "*": "allow",
     "path": {
@@ -13,24 +19,46 @@
       "~/.aws/*": "deny",
       "~/.config/*/secrets*": "deny"
     },
+    "external_directory": "allow",
     "bash": {
       "*": "allow",
-      "rm -rf *": "deny",
-      "rm -rf /*": "deny",
-      "sudo rm *": "deny",
-      "sudo *": "ask",
-      "git push *": "ask",
+
+      "rm *": "ask",
+      "sudo rm *": "ask",
+      "find * -delete": "ask",
+      "find * -exec rm*": "ask",
+      "shred *": "ask",
+      "dd *": "ask",
+      "mkfs*": "ask",
+      "diskutil erase*": "ask",
+      "diskutil partition*": "ask",
+
+      "brew install*": "ask",
+      "brew uninstall*": "ask",
+      "brew upgrade*": "ask",
+      "npm install*": "ask",
+      "npm i *": "ask",
+      "npm uninstall*": "ask",
+      "npx *": "ask",
+      "pnpm add*": "ask",
+      "pnpm install*": "ask",
+      "pnpm remove*": "ask",
+      "yarn add*": "ask",
+      "yarn install*": "ask",
+      "yarn remove*": "ask",
+      "pip install*": "ask",
+      "pip3 install*": "ask",
+      "pipx install*": "ask",
+      "cargo install*": "ask",
+      "go install*": "ask",
+      "gem install*": "ask",
+      "apt install*": "ask",
+      "apt-get install*": "ask",
+      "apt remove*": "ask",
+      "apt-get remove*": "ask",
+
       "git push --force*": "ask",
-      "npm publish*": "ask",
-      "docker system prune*": "ask"
-    },
-    "external_directory": {
-      "*": "ask",
-      "~/.cargo/registry/*": "allow",
-      "~/.npm/*": "allow",
-      "/tmp/*": "allow"
+      "git push -f*": "ask"
     }
-  },
-  "doublePressToConfirm": true,
-  "promptNotifications": ["bell"]
+  }
 }
