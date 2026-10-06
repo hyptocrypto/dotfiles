@@ -76,6 +76,7 @@ PACKAGES=(
     "@gotgenes/pi-permission-system"
     "@juicesharp/rpiv-todo"
     "@narumitw/pi-btw"
+    "pi-claude-subscription-connector"
 )
 if command -v pi &>/dev/null; then
     echo "Installing packages..."

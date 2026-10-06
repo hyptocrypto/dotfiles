@@ -19,9 +19,10 @@ same result whether `~/.pi/agent` is empty or already populated.
 First time: run `./install.sh`, start `pi`, `/login`, then re-run
 `./install.sh` to pick up the provider-specific agent models.
 
-## Packages (12)
+## Packages (13)
 
 - @gotgenes/pi-anthropic-auth - Auth
+- pi-claude-subscription-connector - Claude Pro/Max subscription billing + usage footer
 - pi-web-access - Web search, GitHub, PDF, YouTube
 - @juicesharp/rpiv-ask-user-question - Multi-question dialogs
 - pi-subagents - Subagent orchestration (scout, planner, worker, reviewer)
@@ -33,6 +34,9 @@ First time: run `./install.sh`, start `pi`, `/login`, then re-run
 - @gotgenes/pi-permission-system - Permissions
 - @juicesharp/rpiv-todo - Todos (`/todos`)
 - @narumitw/pi-btw - Quick questions (`/btw`)
+
+`pi-lean-ctx` is installed separately via `lean-ctx init --agent pi` (see
+[Files](#files)); it's not counted above.
 
 ## Custom Extensions
 
@@ -81,6 +85,28 @@ not prompted). `sudo`/`eval`/`bash -c`/`xargs` wrappers are always floored to
 
 Edit `permission-system-config-template.json` and re-run `./install.sh` to
 change the policy.
+
+## Trimmed tools
+
+`fusion_reason`/`fusion_investigate`/`fusion_research`/`fusion_validate`
+(`pi-background-tasks`) cost ~3.2k startup tokens and are rarely used day to
+day. `subagent`/`subagent_supervisor` (scout/planner/worker/reviewer
+delegation) are unaffected and stay on.
+
+`settings.json`'s `defaultTools` can only add/remove built-in tools
+(`read`/`bash`/`edit`/`write`/...), not extension-registered ones, so there's
+no persistent settings-file toggle for this. Instead, `omz/.zshrc` wraps the
+`pi` command:
+
+```zsh
+pi() {
+  command pi --exclude-tools "fusion_reason,fusion_investigate,fusion_research,fusion_validate" "$@"
+}
+```
+
+Get them back for one session by starting with `command pi` instead of `pi`,
+or for one call: `command pi --tools "+fusion_reason"` (any combination of
+`--tools`/`--exclude-tools`).
 
 ## Files
 

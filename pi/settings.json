@@ -15,6 +15,7 @@
     "anthropic/claude-haiku-4-5"
   ],
   "doubleEscapeAction": "none",
+  "fullscreenWheelScrollLines": 4,
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
@@ -39,7 +40,9 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@narumitw/pi-btw",
     "npm:pi-git-status-line",
-    "npm:pi-claude-subscription-connector"
+    "npm:pi-claude-subscription-connector",
+    "npm:@zigai/pi-prompt-history",
+    "npm:@narumitw/pi-usage"
   ],
   "lastChangelogVersion": "0.85.1"
 }

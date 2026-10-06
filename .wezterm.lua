@@ -27,6 +27,23 @@ config.harfbuzz_features = {
 	"liga=0", -- Disables standard ligatures
 	"calt=0", -- Disables contextual alternates
 }
+
+-- Enhanced keyboard protocol: lets Pi (and other kitty-protocol-aware apps)
+-- reliably distinguish modifier combos instead of falling back to legacy
+-- xterm encoding.
+config.enable_kitty_keyboard = true
+
+-- Continuous-output tuning: AI agents like Pi stream large amounts of text
+-- fullscreen. Default settings (3ms coalesce delay, 128KB parse buffer,
+-- 50/sec line prefetch) were designed for occasional bursty output (compilers,
+-- normal shells) and let backlog build up under sustained streaming, which can
+-- delay/drop local key-table dispatch (e.g. Ctrl+P ActivateCopyMode) and make
+-- scrollback feel sluggish. Smaller delay + bigger buffer + faster prefetch
+-- keep the GUI thread responsive to input while a pane is actively producing
+-- output.
+config.mux_output_parser_coalesce_delay_ms = 1
+config.mux_output_parser_buffer_size = 2 * 1024 * 1024
+config.ratelimit_mux_line_prefetches_per_second = 500
 config.keys = {
 
 	-- disable default close-pane binding
