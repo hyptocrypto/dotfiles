@@ -14,6 +14,11 @@ echo "Pi Agent Configuration Switcher"
 echo "================================"
 echo
 
+if ! command -v jq &>/dev/null; then
+    echo "Error: jq is required (used to preserve settings.json \"packages\"). Install jq and re-run."
+    exit 1
+fi
+
 # Check if auth file exists
 if [[ ! -f "$AUTH_FILE" ]]; then
     echo "Error: No auth.json found. Run 'pi' and use /login first."
@@ -230,7 +235,8 @@ Be thorough but concise. Provide file:line references.
 EOF
         echo "  ✓ reviewer.md → claude-opus-5"
         
-        # Update settings.json for Copilot (hardcoded)
+        # Update settings.json for Copilot (hardcoded), preserving installed "packages"
+        EXISTING_PACKAGES=$(jq -c '.packages // []' "$SETTINGS_FILE" 2>/dev/null || echo '[]')
         cat > "$SETTINGS_FILE" << 'EOF'
 {
   "theme": "nord",
@@ -263,7 +269,8 @@ EOF
   "lastChangelogVersion": "0.85.1"
 }
 EOF
-        echo "  ✓ settings.json → github-copilot models"
+        jq --argjson pkgs "$EXISTING_PACKAGES" '.packages = $pkgs' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+        echo "  ✓ settings.json → github-copilot models (packages preserved)"
         
         echo
         echo "✓ Copilot configuration complete"
@@ -466,7 +473,8 @@ Be thorough but concise. Provide file:line references.
 EOF
         echo "  ✓ reviewer.md → claude-sonnet-4-5"
         
-        # Update settings.json for Claude (hardcoded)
+        # Update settings.json for Claude (hardcoded), preserving installed "packages"
+        EXISTING_PACKAGES=$(jq -c '.packages // []' "$SETTINGS_FILE" 2>/dev/null || echo '[]')
         cat > "$SETTINGS_FILE" << 'EOF'
 {
   "theme": "nord",
@@ -499,7 +507,8 @@ EOF
   "lastChangelogVersion": "0.85.1"
 }
 EOF
-        echo "  ✓ settings.json → anthropic models"
+        jq --argjson pkgs "$EXISTING_PACKAGES" '.packages = $pkgs' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+        echo "  ✓ settings.json → anthropic models (packages preserved)"
         
         echo
         echo "✓ Claude configuration complete"

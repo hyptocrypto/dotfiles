@@ -25,7 +25,6 @@ if [ -d "$PI_DIR/extensions" ]; then
     echo "Removing old conflicting extensions..."
     rm -rf "$PI_DIR/extensions/web" 2>/dev/null || true
     rm -rf "$PI_DIR/extensions/subagent" 2>/dev/null || true
-    rm -rf "$PI_DIR/extensions/modal-editor" 2>/dev/null || true
     rm -f "$PI_DIR/extensions/question.ts" 2>/dev/null || true
     echo "  ✓ Conflicts cleaned (replaced with npm packages)"
     echo
@@ -63,12 +62,6 @@ copy_file "$REPO_DIR/settings.json" "$PI_DIR/settings.json"
 copy_file "$REPO_DIR/keybindings.json" "$PI_DIR/keybindings.json"
 copy_file "$REPO_DIR/AGENTS.md" "$PI_DIR/AGENTS.md"
 
-# Copy vim config if it doesn't exist (don't overwrite user customizations)
-if [ ! -f "$PI_DIR/pi-vimmode.config.js" ]; then
-    echo "copied /Users/julianbaumgartner/.pi/agent/pi-vimmode.config.js"
-    cp "$REPO_DIR/pi-vimmode-config-template.js" "$PI_DIR/pi-vimmode.config.js"
-fi
-
 # Clean and copy directories (remove old contents first)
 rm -rf "$PI_DIR/themes" && copy_dir "$REPO_DIR/themes" "$PI_DIR/themes"
 rm -rf "$PI_DIR/extensions" && copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
@@ -80,9 +73,8 @@ echo
 echo "Ensuring no conflicts with npm packages..."
 rm -rf "$PI_DIR/extensions/web" 2>/dev/null || true
 rm -rf "$PI_DIR/extensions/subagent" 2>/dev/null || true
-rm -rf "$PI_DIR/extensions/modal-editor" 2>/dev/null || true
 rm -f "$PI_DIR/extensions/question.ts" 2>/dev/null || true
-echo "  ✓ Conflict check complete (modal-editor replaced with pi-vimmode)"
+echo "  ✓ Conflict check complete"
 echo
 
 # Optional: Install LeanCTX
@@ -97,9 +89,14 @@ else
     echo
     echo "LeanCTX already installed (lean-ctx $(lean-ctx --version 2>/dev/null || echo 'version unknown'))"
     # Ensure aggressive compression and replace mode are set
-    CONFIG_FILE="$PI_DIR/extensions/pi-lean-ctx/config.json"
+    CONFIG_FILE="$PI_DIR/npm/node_modules/pi-lean-ctx/config.json"
     TEMPLATE_FILE="$REPO_DIR/leanctx-config-template.json"
-    if [ -f "$CONFIG_FILE" ]; then
+    if [ ! -f "$CONFIG_FILE" ] && [ -f "$TEMPLATE_FILE" ]; then
+        echo "  Creating LeanCTX config (aggressive compression + replace mode)..."
+        mkdir -p "$(dirname "$CONFIG_FILE")"
+        cp "$TEMPLATE_FILE" "$CONFIG_FILE"
+        echo "  ✓ Config created"
+    elif [ -f "$CONFIG_FILE" ]; then
         NEEDS_UPDATE=false
         if ! grep -q '"LEAN_CTX_COMPRESSION_LEVEL": "aggressive"' "$CONFIG_FILE"; then
             NEEDS_UPDATE=true
@@ -121,16 +118,13 @@ echo
 echo "📦 Installing recommended extensions..."
 if command -v pi &>/dev/null; then
     pi install npm:@gotgenes/pi-anthropic-auth && echo "  ✓ anthropic auth extension installed"
-    pi install npm:pi-vimmode && echo "  ✓ vim mode extension installed"
     pi install npm:@zigai/pi-prompt-history && echo "  ✓ prompt history extension installed"
     pi install npm:pi-web-access && echo "  ✓ web access extension installed"
     pi install npm:@juicesharp/rpiv-ask-user-question && echo "  ✓ question extension installed"
     pi install npm:pi-subagents && echo "  ✓ subagents extension installed"
-    pi install npm:pi-lens && echo "  ✓ lens extension installed"
     pi install npm:pi-goal-x && echo "  ✓ goal extension installed"
     pi install npm:@narumitw/pi-usage && echo "  ✓ usage extension installed"
-    # pi-powerline-footer conflicts with modal-editor (vim mode)
-    # Skipping: pi install npm:pi-powerline-footer
+    pi install npm:pi-git-status-line && echo "  ✓ git status line extension installed"
     pi install npm:pi-background-tasks && echo "  ✓ background tasks extension installed"
     pi install npm:@gotgenes/pi-permission-system && echo "  ✓ permission system extension installed"
     pi install npm:@juicesharp/rpiv-todo && echo "  ✓ todo extension installed"
@@ -138,15 +132,13 @@ if command -v pi &>/dev/null; then
 else
     echo "  ⚠️  pi not found - install extensions manually:"
     echo "      pi install npm:@gotgenes/pi-anthropic-auth"
-    echo "      pi install npm:pi-vimmode"
     echo "      pi install npm:@zigai/pi-prompt-history"
     echo "      pi install npm:pi-web-access"
     echo "      pi install npm:@juicesharp/rpiv-ask-user-question"
     echo "      pi install npm:pi-subagents"
-    echo "      pi install npm:pi-lens"
     echo "      pi install npm:pi-goal-x"
     echo "      pi install npm:@narumitw/pi-usage"
-    # Skipped (conflicts with vim mode): pi install npm:pi-powerline-footer
+    echo "      pi install npm:pi-git-status-line"
     echo "      pi install npm:pi-background-tasks"
     echo "      pi install npm:@gotgenes/pi-permission-system"
     echo "      pi install npm:@juicesharp/rpiv-todo"
@@ -196,20 +188,18 @@ echo "     cd $REPO_DIR && ./switch-agents.sh"
 echo "     Then: /quit and restart pi"
 echo
 echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
-echo "Installed Packages (14)"
+echo "Installed Packages (12)"
 echo "=" "=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""=""="
 echo
 echo "Core:"
 echo "  • @gotgenes/pi-anthropic-auth - Anthropic authentication"
-echo "  • pi-vimmode - Vim mode (hjkl, motions, visual mode)"
 echo "  • @zigai/pi-prompt-history - Up/down arrow history (persisted)"
 echo "  • pi-web-access - Web search, GitHub, PDF, YouTube"
 echo "  • @juicesharp/rpiv-ask-user-question - Multi-question dialogs"
 echo "  • pi-subagents - Official subagent orchestration"
-echo "  • pi-lens - Real-time LSP/linting"
 echo "  • pi-goal-x - Goal tracking (/goal)"
 echo "  • @narumitw/pi-usage - Usage/cost tracking"
-echo "  • pi-powerline-footer - Powerline status bar"
+echo "  • pi-git-status-line - Git status in the footer"
 echo "  • pi-background-tasks - Background jobs"
 echo "  • @gotgenes/pi-permission-system - Permissions"
 echo
@@ -217,8 +207,8 @@ echo "Utilities:"
 echo "  • @juicesharp/rpiv-todo - Todo list (/todos)"
 echo "  • @narumitw/pi-btw - Quick questions (/btw)"
 echo
-echo "Custom Extensions (7):"
-echo "  # modal-editor - REMOVED (replaced with npm:pi-vimmode)"
+echo "Custom Extensions (8):"
+echo "  • modal-editor - Vim-style modal prompt editor (jk -> NORMAL)"
 echo "  • branch-context - Auto-compressed branch context"
 echo "  • review - Local PR review (/review)"
 echo "  • model-enhanced - Enhanced model picker (/m)"
@@ -234,13 +224,10 @@ echo
 echo "If pi fails to start:"
 echo "  1. Check for errors in startup output"
 echo "  2. Try: pi -ne (start without extensions)"
-echo "  3. Run: cd $REPO_DIR && ./verify-install.sh"
-echo "  4. See: cat $REPO_DIR/TROUBLESHOOTING.md"
+echo "  3. See: cat $REPO_DIR/README.md"
 echo
-echo "If vim mode not working:"
-echo "  - Run: /vimmode (to enable it)"
-echo "  - Try pressing 'jk' quickly in insert mode to escape"
-echo "  - Press Escape to enter normal mode, then 'i' for insert"
-echo "  - Vim mode auto-enables on startup (piVimMode.enabled in settings.json)"
+echo "If modal editing not working:"
+echo "  - Press Escape or type 'jk' quickly in insert mode to switch to NORMAL"
+echo "  - Press 'i' (or a/A/o/O) to go back to insert mode"
 echo
 echo "To update later: re-run ./install.sh"

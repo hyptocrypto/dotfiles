@@ -28,6 +28,7 @@
     "anthropicExtraUsage": true
   },
   "packages": [
+    "npm:pi-lean-ctx",
     "npm:@gotgenes/pi-anthropic-auth",
     "npm:pi-web-access",
     "npm:@juicesharp/rpiv-ask-user-question",

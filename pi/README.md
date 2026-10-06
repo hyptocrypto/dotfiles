@@ -23,19 +23,18 @@ pi
 /login  # If first time
 ```
 
-Vim mode auto-enables. Press `jk` in insert mode to escape to normal mode.
+Modal editing (custom `modal-editor` extension) starts in INSERT. Press `Esc`
+or type `jk` quickly to switch to NORMAL mode.
 
-## Packages (14)
+## Packages (12)
 
 - @gotgenes/pi-anthropic-auth - Auth
 - pi-web-access - Web search, GitHub, PDF, YouTube
 - @juicesharp/rpiv-ask-user-question - Multi-question dialogs
 - pi-subagents - Subagent orchestration (scout, researcher, worker, reviewer)
-- pi-lens - Real-time LSP/linting
 - pi-goal-x - Goal tracking (`/goal`)
 - @narumitw/pi-usage - Usage tracking
-- pi-powerline-footer - Status bar
-- pi-vimmode - Vim mode
+- pi-git-status-line - Git status in the footer
 - @zigai/pi-prompt-history - Up/down history (persisted)
 - pi-background-tasks - Background jobs
 - @gotgenes/pi-permission-system - Permissions
@@ -44,6 +43,7 @@ Vim mode auto-enables. Press `jk` in insert mode to escape to normal mode.
 
 ## Custom Extensions
 
+- modal-editor - Vim-style modal prompt editor (`jk` -> NORMAL)
 - branch-context - Auto branch context
 - review - Local PR review (`/review`)
 - model-enhanced - Model picker (`/m`)
@@ -52,16 +52,14 @@ Vim mode auto-enables. Press `jk` in insert mode to escape to normal mode.
 - git-checkpoint - Auto checkpoint
 - protected-paths - Path blocking
 
-## Vim Mode
+## Modal Editing
 
-Auto-enabled on startup. `jk` in insert mode escapes to normal mode.
+`modal-editor` is a local extension (not an npm package) so the `jk` escape
+chord works. Starts in INSERT. `Esc` or `jk` -> NORMAL.
 
 **Key bindings:**
-- INSERT: `jk` → Normal mode (via custom extension)
+- INSERT: `jk` -> NORMAL mode
 - NORMAL: `hjkl` (move), `w/b/e` (word motions), `dd` (delete line), `i/a/o` (insert), `v/V` (visual)
-
-Customize: `~/.pi/agent/pi-vimmode.config.js`
-Reload: `/vimmode reload`
 
 ## Config
 
@@ -72,7 +70,6 @@ Reload: `/vimmode reload`
 - `extensions/` - Custom extensions
 - `prompts/` - Prompt templates
 - `themes/` - Themes
-- `pi-vimmode.config.js` - Vim config
 
 ## Update
 
