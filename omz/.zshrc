@@ -262,7 +262,8 @@ fix = true" >> pyproject.toml
 function syncdot() {
     curr_dir=$(pwd)
     cd ~/dev/dotfiles
-    git checkout main
+    main_barnch=$(git rev-parse --abbrev-ref HEAD)
+    git checkout "$main_barnch"
     git pull
     cp omz/.zshrc ~/.zshrc
     cp .wezterm.lua ~/.wezterm.lua
