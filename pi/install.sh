@@ -70,7 +70,7 @@ echo "Setting up LeanCTX..."
 if ! command -v lean-ctx &>/dev/null; then
     curl -fsSL https://leanctx.com/install.sh | sh
 fi
-lean-ctx init --agent pi --global >/dev/null
+# Package installed via PACKAGES array below; just copy config template
 LEANCTX_CONFIG="$PI_DIR/extensions/pi-lean-ctx/config.json"
 mkdir -p "$(dirname "$LEANCTX_CONFIG")"
 copy_file "$REPO_DIR/leanctx-config-template.json" "$LEANCTX_CONFIG"
@@ -92,6 +92,7 @@ PACKAGES=(
     "@juicesharp/rpiv-todo"
     "@narumitw/pi-btw"
     "pi-subagents"
+    "pi-lean-ctx"
 )
 if command -v pi &>/dev/null; then
     echo "Installing packages..."

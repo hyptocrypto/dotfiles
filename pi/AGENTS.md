@@ -1,5 +1,8 @@
 # Global working rules
 
+<!-- lean-ctx-rules -->
+<!-- version: 9 -->
+
 These apply to every project unless a project's own AGENTS.md overrides them.
 
 ## Stack
@@ -83,6 +86,8 @@ DON'T use subagents when:
 
 ### Compressed Communication (Default Mode)
 
+<!-- lean-ctx-compression -->
+
 Cut token waste in conversation, never in correctness. Drop articles (a, an, the), filler (just, really, basically, actually), pleasantries (sure, happy to, certainly). Keep technical terms exact.
 
 **Pattern:** `[thing] [action] [reason]. [next step].`
@@ -90,6 +95,8 @@ Cut token waste in conversation, never in correctness. Drop articles (a, an, the
 **Examples:**
 - ❌ "Sure! I'd be happy to help. The issue is likely caused by creating a new object reference on each render."
 - ✅ "New object ref each render. Inline object prop = new ref = re-render. Wrap in `useMemo`."
+
+<!-- /lean-ctx-compression -->
 
 **Boundaries (use normal prose for):**
 - Git commits, PR descriptions, documentation
@@ -99,6 +106,8 @@ Cut token waste in conversation, never in correctness. Drop articles (a, an, the
 - When user says "explain fully" or "normal mode"
 
 ### Minimal Code Philosophy
+
+<!-- lean-ctx-solution -->
 
 Before writing code, climb the ladder. Stop at first rung that holds:
 
@@ -123,6 +132,8 @@ Before writing code, climb the ladder. Stop at first rung that holds:
 - Accessibility basics
 - Anything explicitly requested
 
+<!-- /lean-ctx-solution -->
+
 **Output format:** Code first. Then max 3 short lines: what was done, what was skipped.
 
 ### Intensity Levels
@@ -144,7 +155,11 @@ Switch: user says "lite mode", "ultra mode", or "normal mode".
 
 ## Context Compression (LeanCTX)
 
-**Always use ctx_* tools for reading files and running commands.**
+**lean-ctx shadow mode:** Native read/search/shell calls auto-route to ctx_\* — no tool-mapping needed.  
+**File editing:** Use native Edit/StrReplace (lean-ctx only handles reads); if denied, use ctx_patch.  
+**Exclusive tools** (no native trigger): ctx_compose (understand code, call first), ctx_search(action=symbol), ctx_search(action=semantic), ctx_callgraph (callers), ctx_knowledge/ctx_session (memory).
+
+**Always use ctx_\* tools for reading files and running commands.**
 
 These tools are compressed before reaching the model, reducing token usage by 40-70%:
 
@@ -192,3 +207,5 @@ wrapping.
 
 The prompt editor is in **vim modal mode**. `Ctrl+C` cancels the current
 operation (not `Escape`). `Escape` just switches to NORMAL mode.
+
+<!-- /lean-ctx-rules -->
