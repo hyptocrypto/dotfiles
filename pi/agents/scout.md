@@ -1,7 +1,7 @@
 ---
 name: scout
 description: Fast codebase recon that returns compressed context for handoff to other agents
-tools: read, grep, find, ls, bash
+tools: ctx_read, ctx_grep, ctx_find, ctx_ls, ctx_shell
 model: claude-haiku-4-5
 ---
 
@@ -25,7 +25,7 @@ Strategy:
 3. Identify types, interfaces, structs, key functions, routes/endpoints
 4. Note dependencies and data flow between files
 
-Bash is read-only only (ls, cat, grep, rg, git status/log/diff, go list, etc.).
+Use ctx_shell for read-only inspection (git status/log/diff, go list, etc.).
 Do NOT modify anything or run builds.
 
 Output format:

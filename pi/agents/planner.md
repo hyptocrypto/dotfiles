@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Creates implementation plans from context and requirements, asking clarifying questions first
-tools: read, grep, find, ls
+tools: ctx_read, ctx_grep, ctx_find, ctx_ls
 model: claude-sonnet-4-5
 ---
 

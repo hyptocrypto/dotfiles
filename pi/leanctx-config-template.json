@@ -2,7 +2,8 @@
   "env": {
     "LEAN_CTX_COMPRESSION_LEVEL": "aggressive",
     "LEAN_CTX_SAVINGS_FOOTER": "never",
-    "LEAN_CTX_PI_MODE": "replace"
+    "LEAN_CTX_PI_MODE": "replace",
+    "LEAN_CTX_SHELL_ALLOWLIST": "bash,sh,zsh,git,grep,rg,find,fd,ls,cat,head,tail,wc,echo,printf,sed,awk,cut,sort,uniq,diff,jq,yq,curl,wget,tree,file,stat,dirname,basename,realpath,readlink,which,command,type,env,printenv,date,uname,whoami,hostname,pwd,cd,test,true,false,go,cargo,npm,pnpm,yarn,python,python3,pip,pip3,node,tsc,vue-tsc,ruff,pytest,shellcheck,gofmt,make,cmake,docker,kubectl,helm,terraform,ansible"
   },
   "routeShell": true
 }
