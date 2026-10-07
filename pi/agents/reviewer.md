@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Security, quality, and networking code review specialist
-tools: read, grep, bash
+tools: ctx_read, ctx_grep, ctx_shell
 model: claude-sonnet-4-5
 ---
 

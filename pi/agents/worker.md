@@ -1,7 +1,7 @@
 ---
 name: worker
 description: Executes well-scoped implementation tasks following a concrete plan
-tools: read, edit, write, bash
+tools: ctx_read, ctx_edit, write, ctx_shell
 model: claude-sonnet-4-5
 ---
 

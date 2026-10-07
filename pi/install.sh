@@ -48,6 +48,22 @@ copy_file "$REPO_DIR/AGENTS.md" "$PI_DIR/AGENTS.md"
 copy_dir "$REPO_DIR/themes" "$PI_DIR/themes"
 copy_dir "$REPO_DIR/extensions" "$PI_DIR/extensions"
 copy_dir "$REPO_DIR/prompts" "$PI_DIR/prompts"
+
+# Symlink packaged pi-subagents prompts if available
+SUBAGENTS_PROMPTS="$PI_DIR/npm/node_modules/pi-subagents/prompts"
+if [ -d "$SUBAGENTS_PROMPTS" ]; then
+    echo "Symlinking pi-subagents packaged prompts..."
+    for prompt in "$SUBAGENTS_PROMPTS"/*.md; do
+        prompt_name=$(basename "$prompt")
+        # Don't overwrite repo-provided prompts
+        if [ ! -f "$PI_DIR/prompts/$prompt_name" ]; then
+            ln -sf "$prompt" "$PI_DIR/prompts/$prompt_name"
+            echo "  ✓ $prompt_name"
+        fi
+    done
+else
+    echo "  pi-subagents not yet installed - run this script again after 'pi install npm:pi-subagents'"
+fi
 copy_dir "$REPO_DIR/agents" "$PI_DIR/agents"
 
 echo "Setting up LeanCTX..."
@@ -75,6 +91,7 @@ PACKAGES=(
     "@gotgenes/pi-permission-system"
     "@juicesharp/rpiv-todo"
     "@narumitw/pi-btw"
+    "pi-subagents"
 )
 if command -v pi &>/dev/null; then
     echo "Installing packages..."
