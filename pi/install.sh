@@ -75,7 +75,6 @@ PACKAGES=(
     "@gotgenes/pi-permission-system"
     "@juicesharp/rpiv-todo"
     "@narumitw/pi-btw"
-    "pi-claude-subscription-connector"
 )
 if command -v pi &>/dev/null; then
     echo "Installing packages..."
@@ -105,7 +104,7 @@ elif grep -q '"github-copilot"' "$AUTH_FILE" 2>/dev/null; then
           "github-copilot/claude-sonnet-5",
           "github-copilot/claude-opus-5",
           "github-copilot/gemini-3.8-flash"
-        ]' "$PI_DIR/settings.json" > "$PI_DIR/settings.json.tmp" && mv "$PI_DIR/settings.json.tmp" "$PI_DIR/settings.json"
+        ]' "$PI_DIR/settings.json" >"$PI_DIR/settings.json.tmp" && mv "$PI_DIR/settings.json.tmp" "$PI_DIR/settings.json"
     set_agent_model scout gemini-3.8-flash
     set_agent_model planner claude-sonnet-5
     set_agent_model worker claude-sonnet-5

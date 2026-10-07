@@ -19,10 +19,9 @@ same result whether `~/.pi/agent` is empty or already populated.
 First time: run `./install.sh`, start `pi`, `/login`, then re-run
 `./install.sh` to pick up the provider-specific agent models.
 
-## Packages (12)
+## Packages (11)
 
-- @gotgenes/pi-anthropic-auth - Auth
-- pi-claude-subscription-connector - Claude Pro/Max subscription billing + usage footer
+- @gotgenes/pi-anthropic-auth - Auth (OAuth compatibility)
 - pi-web-access - Web search, GitHub, PDF, YouTube
 - @juicesharp/rpiv-ask-user-question - Multi-question dialogs
 - pi-goal-x - Goal tracking (`/goal`)
@@ -39,6 +38,7 @@ First time: run `./install.sh`, start `pi`, `/login`, then re-run
 
 ## Custom Extensions
 
+- claude-usage-status - Claude subscription usage stats in footer (🧠 5h 35% · wk 27% · model 52%); extracted from `pi-claude-subscription-connector` to run alongside `@gotgenes/pi-anthropic-auth`
 - subagent - Delegate to scout/planner/worker/reviewer personas (single/parallel/chain); spawns isolated `pi` subprocesses. Pi's own [example extension](https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/subagent) swapped in for `pi-subagents` (~8.4k → ~0.7k startup tokens — no missions/lanes/worktrees/scheduling/watchdog, just delegate+return)
 - modal-editor - Vim-style modal prompt editor (`jk` -> NORMAL)
 - branch-context - Auto branch context
