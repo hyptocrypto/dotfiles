@@ -75,6 +75,54 @@ LEANCTX_CONFIG="$PI_DIR/extensions/pi-lean-ctx/config.json"
 mkdir -p "$(dirname "$LEANCTX_CONFIG")"
 copy_file "$REPO_DIR/leanctx-config-template.json" "$LEANCTX_CONFIG"
 
+# Merge lean-ctx global config
+LEANCTX_GLOBAL_CONFIG="$HOME/.config/lean-ctx/config.toml"
+mkdir -p "$(dirname "$LEANCTX_GLOBAL_CONFIG")"
+if [ -f "$REPO_DIR/leanctx-global-config.toml" ]; then
+    if [ ! -f "$LEANCTX_GLOBAL_CONFIG" ]; then
+        # First time: copy template directly
+        copy_file "$REPO_DIR/leanctx-global-config.toml" "$LEANCTX_GLOBAL_CONFIG"
+        echo "  ✓ Created lean-ctx config with shell_allowlist_extra"
+    else
+        # Merge shell_allowlist_extra if not already present
+        if ! grep -q "ssh-private" "$LEANCTX_GLOBAL_CONFIG" 2>/dev/null; then
+            echo "  Merging ssh-private into shell_allowlist_extra..."
+            if grep -q "shell_allowlist_extra" "$LEANCTX_GLOBAL_CONFIG"; then
+                # Array exists, append to it
+                sed -i.bak '/shell_allowlist_extra = \[/,/\]/{
+                    /\]/i\    "ssh-private",
+                }' "$LEANCTX_GLOBAL_CONFIG"
+            else
+                # Array doesn't exist, append whole section
+                cat >> "$LEANCTX_GLOBAL_CONFIG" <<'EOF'
+
+# Extra commands allowed beyond the default allowlist
+shell_allowlist_extra = [
+    "ssh-private",
+]
+EOF
+            fi
+            echo "  ✓ Added ssh-private to allowlist"
+        else
+            echo "  ✓ ssh-private already in allowlist"
+        fi
+    fi
+fi
+
+# Install scripts to ~/.local/bin
+if [ -d "$REPO_DIR/scripts" ]; then
+    echo "Installing scripts to ~/.local/bin..."
+    mkdir -p "$HOME/.local/bin"
+    for script in "$REPO_DIR/scripts"/*; do
+        if [ -f "$script" ]; then
+            script_name=$(basename "$script")
+            cp "$script" "$HOME/.local/bin/$script_name"
+            chmod +x "$HOME/.local/bin/$script_name"
+            echo "  ✓ $script_name"
+        fi
+    done
+fi
+
 PERM_CONFIG="$PI_DIR/extensions/pi-permission-system/config.json"
 mkdir -p "$(dirname "$PERM_CONFIG")"
 copy_file "$REPO_DIR/permission-system-config-template.json" "$PERM_CONFIG"

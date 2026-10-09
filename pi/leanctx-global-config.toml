@@ -1,0 +1,10 @@
+# lean-ctx global config template
+# This gets merged into ~/.config/lean-ctx/config.toml by install.sh
+
+# Extra commands allowed beyond the default allowlist
+# Use 'lean-ctx allow <cmd>' to add more interactively
+shell_allowlist_extra = [
+    "wails",
+    "wails3",
+    "ssh-private",
+]

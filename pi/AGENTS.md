@@ -189,6 +189,18 @@ Use these tools exactly as you would use native tools. Compression is transparen
   fallback. Don't guess at external API behavior — look it up.
 - **subagent** — delegate to scout/planner/worker/reviewer (see below).
 
+## Shell utilities
+
+Custom wrappers installed to `~/.local/bin` for safe, restricted operations:
+
+- **ssh-private** — SSH wrapper restricted to RFC1918 private addresses only
+  (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16). Use this for home network
+  management. Plain `ssh` is blocked by the shell allowlist. Examples:
+  ```bash
+  ssh-private user@192.168.1.100
+  ssh-private 10.0.0.5 -p 2222
+  ```
+
 ## Test artifact cleanup
 
 Any scratch scripts/binaries/processes created to test or debug something must be

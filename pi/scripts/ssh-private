@@ -1,0 +1,31 @@
+#!/bin/bash
+# ssh-private: ssh wrapper that only allows RFC1918 private addresses
+# 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: ssh-private [user@]host [ssh-options...]" >&2
+    exit 1
+fi
+
+# Extract hostname from first arg (handles user@host, host, host:port)
+target="$1"
+host="${target##*@}"  # Strip user@ if present
+host="${host%%:*}"    # Strip :port if present
+
+# Resolve to IP if it's a hostname
+if ! ip=$(getent hosts "$host" 2>/dev/null | awk '{print $1; exit}'); then
+    ip="$host"  # Assume it's already an IP
+fi
+
+# Validate RFC1918 ranges
+if [[ "$ip" =~ ^10\. ]] || \
+   [[ "$ip" =~ ^172\.(1[6-9]|2[0-9]|3[0-1])\. ]] || \
+   [[ "$ip" =~ ^192\.168\. ]]; then
+    exec ssh "$@"
+else
+    echo "ERROR: $host ($ip) is not an RFC1918 private address" >&2
+    echo "Allowed ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16" >&2
+    exit 1
+fi
