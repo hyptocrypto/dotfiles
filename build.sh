@@ -7,7 +7,8 @@ brew install --cask spotify brave-browser wezterm raycast karabiner-elements vis
 
 # Shell stuff
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git $HOME/.oh-my-zsh/custom/plugins/zsh-autocomplete
+# Pin zsh-autocomplete to stable tag 26.08.04 (newer versions break - see SHELL-FIX.md)
+git clone --branch 26.08.04 --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git $HOME/.oh-my-zsh/custom/plugins/zsh-autocomplete
 git clone --depth 1 -- https://github.com/zsh-users/zsh-autosuggestions $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 git clone --depth 1 -- https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.oh-my-zsh/plugins/zsh-syntax-highlighting
 
