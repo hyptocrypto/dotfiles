@@ -1,10 +1,21 @@
 # lean-ctx global config template
-# This gets merged into ~/.config/lean-ctx/config.toml by install.sh
+# Copied verbatim to ~/.config/lean-ctx/config.toml by install.sh.
+# This is the canonical config — keep it identical across all devices.
 
-# Extra commands allowed beyond the default allowlist
-# Use 'lean-ctx allow <cmd>' to add more interactively
+# Extra commands allowed beyond lean-ctx's default allowlist.
+# Use 'lean-ctx allow <cmd>' to add more interactively.
+#
+# Philosophy: enable the capability, fence the blast radius. Add tools that act
+# locally with no ambient remote credentials. Keep out anything that mutates
+# remote infrastructure (kubectl, aws, gcloud, terraform, gh, plain ssh, rsync)
+# — those are the ssh -> ssh-private category and should be opted in deliberately
+# (or wrapped like scripts/ssh-private).
 shell_allowlist_extra = [
-    "wails",
-    "wails3",
+    # ssh fenced to RFC1918 private addresses only (see scripts/ssh-private)
     "ssh-private",
+
+    # Local container tooling — Docker daemon is local, no remote creds.
+    # "docker" also covers the v2 "docker compose" subcommand.
+    "docker",
+    "docker-compose",
 ]
