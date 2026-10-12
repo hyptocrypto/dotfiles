@@ -155,28 +155,37 @@ Switch: user says "lite mode", "ultra mode", or "normal mode".
 
 ## Context Compression (LeanCTX)
 
-**lean-ctx shadow mode:** Native read/search/shell calls auto-route to ctx_\* — no tool-mapping needed.  
-**File editing:** Use native Edit/StrReplace (lean-ctx only handles reads); if denied, use ctx_patch.  
-**Exclusive tools** (no native trigger): ctx_compose (understand code, call first), ctx_search(action=symbol), ctx_search(action=semantic), ctx_callgraph (callers), ctx_knowledge/ctx_session (memory).
+**IMPORTANT: You are in REPLACE mode** — Pi's built-in `read`, `bash`, `ls`, `find`, `grep` tools
+are **DISABLED**. You MUST use the `ctx_*` equivalents:
 
-**Always use ctx_\* tools for reading files and running commands.**
+| YOU MUST USE | Native is DISABLED | Why |
+|--------------|--------------------|----- |
+| `ctx_read` | ❌ `read`, `cat`, `head`, `tail` | Cached + compressed; unchanged re-reads cost ~13 tokens |
+| `ctx_shell` | ❌ `bash` | Shell output compressed via 95+ patterns |
+| `ctx_search` | ❌ `grep` | Compact, ranked matches |
+| `ctx_glob` | ❌ `find` | Compressed, .gitignore-aware file matching |
+| `ctx_tree` | ❌ `ls` | Compact directory maps |
+| `edit`, `write` | ✅ Available | Pi's native editing tools remain unchanged |
 
-These tools are compressed before reaching the model, reducing token usage by 40-70%:
+**The `ctx_*` tools work identically to their native counterparts** — compression is automatic
+and transparent. You get the same functionality with dramatically lower token costs:
+- First read: 40-50% token savings
+- Cached re-read: 95% token savings (~13 tokens)
+- Shell output: 60-90% token savings
 
-- **ctx_read** `<path>` — Read files (instead of native `read`)
-- **ctx_shell** `<command>` — Run shell commands (instead of native `bash`)
-- **ctx_search** `<pattern>` — Search code (instead of `grep`)
-- **ctx_glob** `<pattern>` — List files (instead of `glob`)
-- **ctx_tree** `<path>` — Show directory tree
+**Usage patterns:**
+- Use `ctx_shell` for commands with side effects (build/test/git/etc.); set `raw=true` when exact
+  output matters.
+- Use `ctx_read` with `mode=anchored` for files you will edit, then patch by anchor via
+  `ctx_patch` (reachable through `ctx_call`) — no old-text echo.
+- For line ranges pass `offset`/`limit` or `mode=lines:N-M` — all cached, so repeated reads stay cheap.
 
-**Critical:** Native `read`/`bash` tools are disabled. You MUST use `ctx_*` variants.
-
-**Why:** Automatic compression reduces tokens dramatically:
-- First read: 40-50% savings
-- Cached re-read: 95% savings (tiny reference)
-- Shell output: 60-90% savings
-
-Use these tools exactly as you would use native tools. Compression is transparent.
+**Exclusive tools** (no native equivalent):
+- `ctx_compose` — Understand code; returns ranked files with inline snippets. Call this first.
+- `ctx_search(action=symbol)` — Find definitions without grepping
+- `ctx_search(action=semantic, query="...")` — Concept-based search
+- `ctx_callgraph` — Multi-hop dependency analysis (callers/callees/trace)
+- `ctx_knowledge` / `ctx_session` — Persistent memory across sessions
 
 ## Extra tools available
 
