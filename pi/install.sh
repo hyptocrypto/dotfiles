@@ -98,6 +98,19 @@ if [ -d "$REPO_DIR/scripts" ]; then
     done
 fi
 
+# Path jail is low value in practice - any allowlisted shell command
+# (cat/grep/find/...) bypasses it anyway, so it's UX friction without a
+# real security boundary. Disable it, but keep shell gating (blocks
+# destructive commands) and secret/.env redaction enforced.
+if command -v lean-ctx &>/dev/null; then
+    lean-ctx config set path_jail false --yes >/dev/null 2>&1 && echo "  ✓ lean-ctx path jail disabled (shell gating + secret redaction stay on)"
+    # git worktree checkouts (.worktrees/feature-x) duplicate every file in
+    # the repo; without this, ctx_search/ctx_glob/ctx_tree surface the same
+    # match once per worktree. rg/fd already skip .worktrees via the global
+    # gitignore (gitignore_global), this covers lean-ctx's own indexer too.
+    lean-ctx config set extra_ignore_patterns ".worktrees" >/dev/null 2>&1 && echo "  ✓ lean-ctx ignores .worktrees/ in search/index"
+fi
+
 PERM_CONFIG="$PI_DIR/extensions/pi-permission-system/config.json"
 mkdir -p "$(dirname "$PERM_CONFIG")"
 copy_file "$REPO_DIR/permission-system-config-template.json" "$PERM_CONFIG"
