@@ -2,7 +2,7 @@
  * Local PR Review Extension
  *
  * /review [baseBranch] - Reviews current branch's diff against a base branch
- * (default branch if omitted) using a lightweight model, looking for bugs,
+ * (default branch if omitted) using a strong reasoning model, looking for bugs,
  * logical gaps, edge cases, and other issues a PR reviewer would flag.
  * Runs entirely locally - no GitHub/Copilot/CodeRabbit round-trip.
  */
@@ -29,15 +29,15 @@ interface ReviewEntryData {
 // Cap diff size sent to the review model (chars, not tokens)
 const MAX_DIFF_CHARS = 60000;
 
-// Cheap/fast models per provider - good enough to catch obvious issues
+// Strong reasoning models per provider - thorough enough for architectural review
 const REVIEW_MODELS: Record<string, string> = {
-	anthropic: "claude-haiku-4-5",
-	"github-copilot": "gemini-3.8-flash",
+	anthropic: "claude-opus-5",
+	"github-copilot": "claude-opus-5",
 };
 
 export default function (pi: ExtensionAPI) {
-	pi.registerEntryRenderer<ReviewEntryData>("review-result", (entry, _options, theme) => {
-		const d = entry.data;
+	pi.registerMessageRenderer<ReviewEntryData>("review-result", (message, _options, theme) => {
+		const d = message.details;
 		const box = new Box(1, 1, (text) => theme.bg("customMessageBg", text));
 		if (!d) {
 			box.addChild(new Text(theme.fg("dim", "(no review data)"), 0, 0));
@@ -299,19 +299,27 @@ Anything ambiguous that needs clarification before merge (omit section if none).
 			const { text: review, tokens, cost } = await runReviewModel(task, provider, ctx);
 			const durationMs = Date.now() - startedAt;
 
-			pi.appendEntry<ReviewEntryData>("review-result", {
-				branch,
-				baseBranch,
-				focus: focus || undefined,
-				modelId,
-				filesChanged,
-				diffChars: diff.length,
-				truncated,
-				tokens,
-				cost,
-				durationMs,
-				review,
-				timestamp: Date.now(),
+			// sendMessage (not appendEntry) so the review text actually enters the
+			// model's context - appendEntry is UI-only persistence and is invisible
+			// to the LLM on later turns (e.g. "fix the critical issues").
+			pi.sendMessage<ReviewEntryData>({
+				customType: "review-result",
+				content: `Local PR review of "${branch}" vs "${baseBranch}":\n\n${review}`,
+				display: true,
+				details: {
+					branch,
+					baseBranch,
+					focus: focus || undefined,
+					modelId,
+					filesChanged,
+					diffChars: diff.length,
+					truncated,
+					tokens,
+					cost,
+					durationMs,
+					review,
+					timestamp: Date.now(),
+				},
 			});
 
 			const usageLine = tokens ? ` (${tokens} tokens, $${cost.toFixed(4)}, ${(durationMs / 1000).toFixed(1)}s)` : "";

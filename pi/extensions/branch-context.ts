@@ -494,12 +494,9 @@ ${cache.context}
 			);
 			
 			ctx.ui.notify(
-				`✓ Context active for ${branch} (vs ${baseBranch})\nCached: ${timestamp}\nFile: ${cachePath}`,
+				`**Branch:** ${cache.branch}\n**Base:** ${cache.baseBranch}\n**Cached:** ${timestamp}\n**File:** ${cachePath}\n\n${cache.context}`,
 				"success",
 			);
-			
-			// Return full context for display
-			return `**Branch:** ${cache.branch}\n**Base:** ${cache.baseBranch}\n**Cached:** ${timestamp}\n\n${cache.context}`;
 		},
 	});
 
@@ -530,8 +527,10 @@ ${cache.context}
 			const provider = ctx.model?.provider || "anthropic";
 			const { context } = await getBranchContext(branch, baseBranch, true, provider);
 
-			ctx.ui.notify("✓ Context refreshed", "success");
-			return `**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`;
+			ctx.ui.notify(
+				`✓ Context refreshed\n\n**Branch:** ${branch}\n**Base:** ${baseBranch}\n\n${context}`,
+				"success",
+			);
 		},
 	});
 
