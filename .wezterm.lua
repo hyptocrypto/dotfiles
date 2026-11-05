@@ -1,7 +1,13 @@
 local wezterm = require("wezterm")
 local config = {}
 
-config.font = wezterm.font("JetBrains Mono", { weight = "Regular" })
+-- Icons (p10k, lsd) come from the Nerd Font installed via Brewfile; the
+-- built-in Symbols font is a last resort.
+config.font = wezterm.font_with_fallback({
+	{ family = "JetBrains Mono", weight = "Regular" },
+	"JetBrainsMono Nerd Font",
+	"Symbols Nerd Font Mono",
+})
 config.freetype_load_target = "Light"
 config.freetype_render_target = "HorizontalLcd"
 config.foreground_text_hsb = { brightness = 0.9, saturation = 1.0, hue = 1.0 }
