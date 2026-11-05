@@ -9,7 +9,7 @@ fi
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/julianbaumgartner/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -121,7 +121,7 @@ source $ZSH/oh-my-zsh.sh
 
 ####### PERSONAL #####
 BREW_PATH="/opt/homebrew/bin"
-GO_PATH="/Users/julianbaumgartner/go/bin"
+GO_PATH="$HOME/go/bin"
 VSCODE_PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin" 
 
 export PATH="$PATH:$GO_PATH:$VSCODE_PATH:$BREW_PATH"
@@ -259,18 +259,9 @@ extend-ignore = [\"E501\"]  # Ignore line length errors
 fix = true" >> pyproject.toml
 }
 
+# Dotfiles are symlinked into ~/dev/dotfiles (see build.sh), so a pull is enough.
 function syncdot() {
-    curr_dir=$(pwd)
-    cd ~/dev/dotfiles
-    main_barnch=$(git rev-parse --abbrev-ref HEAD)
-    git checkout "$main_barnch"
-    git pull
-    cp omz/.zshrc ~/.zshrc
-    cp .wezterm.lua ~/.wezterm.lua
-    cp .gitconfig ~/.gitconfig
-    cp gitignore_global ~/.gitignore_global
-    source ~/.zshrc
-    cd "$curr_dir"
+    git -C ~/dev/dotfiles pull --ff-only && source ~/.zshrc
 }
 
 function mkcd (){

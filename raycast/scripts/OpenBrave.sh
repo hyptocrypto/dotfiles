@@ -13,9 +13,9 @@
 # Optional parameters:
 # @raycast.icon 🤖
 # @raycast.packageName Raycast Scripts
-#!/bin/bash
 
 # Click on the main display to ensure focus before switching spaces
+#
 cliclick c:200,200
 sleep 0.1
 
@@ -24,7 +24,9 @@ osascript -e 'tell application "System Events"
         key code 124 using control down
         key code 124 using control down
         key code 124 using control down
-        delay 0.2
+        key code 124 using control down
+        key code 124 using control down
+        key code 124 using control down
 end tell'
 
 sleep 0.1
@@ -32,6 +34,4 @@ sleep 0.1
 # Click to attempt focus (sometimes needed)
 cliclick c:200,200
 sleep 0.1
-cliclick c:200,200
-cliclick c:200,200
 cliclick c:200,200

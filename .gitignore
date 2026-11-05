@@ -1,5 +1,8 @@
 .DS_Store
 .claude
+.pi/
 AGENTS.md
 AGENTS.md.bak
 LEAN-CTX.md
+# Karabiner writes these into its (symlinked) config dir
+karabiner/automatic_backups/

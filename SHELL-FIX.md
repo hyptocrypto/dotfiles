@@ -9,12 +9,12 @@ autocomplete:_main_complete:new:post:3: command not found: _autocomplete__unambi
 ```
 
 ## Solution Applied
-Rolled back to stable tag `26.08.04` and pinned on local branch `stable-26.08.04`.
+Rolled back to stable tag `24.09.04` and pinned on local branch `stable-24.09.04`.
 
 ```bash
 cd ~/.oh-my-zsh/custom/plugins/zsh-autocomplete
-git checkout 26.08.04
-git switch -c stable-26.08.04
+git checkout 24.09.04
+git switch -c stable-24.09.04
 ```
 
 ## To apply
