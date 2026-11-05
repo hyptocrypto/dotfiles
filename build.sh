@@ -55,10 +55,26 @@ if [ ! -x /opt/homebrew/bin/brew ]; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 eval "$(/opt/homebrew/bin/brew shellenv)"
+# .zshrc adds this too; set it here so installers (lean-ctx) don't append
+# PATH lines to ~/.zshrc, which is a symlink into this repo.
+export PATH="$HOME/.local/bin:$PATH"
+# Homebrew is single-user: if it was installed by another (e.g. deleted)
+# account, brew can't write and zsh rejects its completions as insecure.
+if [ "$(stat -f %Su /opt/homebrew)" != "$ME" ]; then
+    echo "Taking ownership of /opt/homebrew (needs sudo)"
+    sudo chown -R "$ME:admin" /opt/homebrew
+fi
+chmod -R go-w /opt/homebrew/share  # zsh compaudit: no group/world-writable fpath
 
 step "Brew bundle (Brewfile)"
 # Don't abort on one failed package (e.g. app already installed outside brew).
 brew bundle --verbose --file="$REPO/Brewfile" || warn "some Brewfile entries failed - see output above"
+
+# Font casks install into the *installing user's* ~/Library/Fonts, and brew
+# considers them installed even for a different user. Reinstall if missing.
+if ! ls "$HOME/Library/Fonts"/JetBrainsMonoNerdFont-* >/dev/null 2>&1; then
+    brew reinstall --cask font-jetbrains-mono-nerd-font || warn "Nerd Font install failed"
+fi
 
 # pi is also in the Brewfile (npm entry); fall back if bundle skipped it.
 command -v pi >/dev/null || npm install -g @earendil-works/pi-coding-agent || warn "pi install failed"
@@ -69,7 +85,9 @@ ZSH_DIR="$HOME/.oh-my-zsh"
 if [ ! -f "$ZSH_DIR/oh-my-zsh.sh" ]; then
     # A previous broken run may have left a dir with only custom plugins in it.
     [ -d "$ZSH_DIR" ] && mv "$ZSH_DIR" "$ZSH_DIR.broken.$(date +%Y%m%d%H%M%S)"
-    RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+    # Pass ZSH explicitly: an inherited $ZSH (from the calling shell) would
+    # make the installer target the wrong directory.
+    env -u ZSH_CUSTOM ZSH="$ZSH_DIR" RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 ZSH_CUSTOM="$ZSH_DIR/custom"
@@ -79,6 +97,9 @@ clone https://github.com/marlonrichert/zsh-autocomplete.git "$ZSH_CUSTOM/plugins
 clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 mkdir -p "$HOME/.nvm"
+# Stale completion caches from earlier broken runs cause compdef errors;
+# zsh rebuilds them on next start.
+rm -f "$HOME"/.zcompdump*
 
 # ---------------------------------------------------------------- Dotfiles
 step "Dotfiles (symlinks into $REPO)"
