@@ -10,7 +10,17 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "dotfiles @ $(git -C "$REPO" log -1 --format='%h %s' 2>/dev/null || echo unknown)"
 STATE_DIR="$HOME/.local/state/dotfiles"
+
+# Earlier sudo runs can leave root-owned dirs in $HOME; take them back.
+ME="$(id -un)"
+for d in "$HOME/.oh-my-zsh" "$HOME/.config" "$HOME/.ssh" "$HOME/.local" "$HOME/dev"; do
+    if [ -e "$d" ] && [ -n "$(find "$d" ! -user "$ME" -print -quit 2>/dev/null)" ]; then
+        echo "Fixing ownership of $d (needs sudo)"
+        sudo chown -R "$ME:staff" "$d"
+    fi
+done
 mkdir -p "$STATE_DIR"
 
 step() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
