@@ -4,6 +4,11 @@
 # Usage: ./build.sh   (run from anywhere; repo location is auto-detected)
 set -euo pipefail
 
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Don't run with sudo - it makes files in \$HOME root-owned. It will prompt when needed." >&2
+    exit 1
+fi
+
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_DIR="$HOME/.local/state/dotfiles"
 mkdir -p "$STATE_DIR"
@@ -43,7 +48,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 step "Brew bundle (Brewfile)"
 # Don't abort on one failed package (e.g. app already installed outside brew).
-brew bundle --file="$REPO/Brewfile" || warn "some Brewfile entries failed - see output above"
+brew bundle --verbose --file="$REPO/Brewfile" || warn "some Brewfile entries failed - see output above"
 
 # pi is also in the Brewfile (npm entry); fall back if bundle skipped it.
 command -v pi >/dev/null || npm install -g @earendil-works/pi-coding-agent || warn "pi install failed"
